@@ -3,12 +3,13 @@ import rospy
 
 import numpy as np
 from sensor_msgs.msg import Image
+from city_driving.msg import SignLocationPixel
 from detector import StopSignDetector
 
 class SignDetector:
     def __init__(self):
         self.detector = StopSignDetector()
-        self.publisher = None #TODO
+        self.publisher = rospy.Publisher("/relative_sign_px", SignLocationPixel, queue_size=10)
         self.subscriber = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.callback)
 
     def callback(self, img_msg):
@@ -17,7 +18,16 @@ class SignDetector:
         bgr_img = np_img[:,:,:-1]
         rgb_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
 
-        #TODO: 
+        is_box, coords = self.detector.predict(rgb_img)
+
+        if not is_box:
+            return
+
+        out = SignLocationPixel()
+        out.u = (coords[2] - coords[0])/2
+        out.v = coords[1]
+
+        self.publisher.publish(out)
 
 if __name__=="__main__":
     rospy.init_node("stop_sign_detector")
