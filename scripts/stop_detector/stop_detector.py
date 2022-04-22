@@ -3,13 +3,13 @@ import rospy
 
 import numpy as np
 from sensor_msgs.msg import Image
-from city_driving.msg import SignLocationPixel
+from final_challenge.msg import ObjectLocationPixel
 from detector import StopSignDetector
 
 class SignDetector:
     def __init__(self):
         self.detector = StopSignDetector()
-        self.publisher = rospy.Publisher("/relative_sign_px", SignLocationPixel, queue_size=10)
+        self.publisher = rospy.Publisher("/relative_sign_px", ObjectLocationPixel, queue_size=10)
         self.subscriber = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.callback)
     
     def callback(self, img_msg):
@@ -23,7 +23,7 @@ class SignDetector:
         if not is_box:
             return
 
-        out = SignLocationPixel()
+        out = ObjectLocationPixel()
         out.u = (coords[2] - coords[0])/2
         out.v = coords[1]
 

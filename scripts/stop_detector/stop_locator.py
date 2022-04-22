@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 
 import rospy
 import numpy as np
@@ -6,33 +6,33 @@ import numpy as np
 import cv2
 
 from visualization_msgs.msg import Marker
-from city_driving.msg import ObjectLocation, ObjectLocationPixel
+from final_challenge.msg import ObjectLocation, ObjectLocationPixel
 from geometry_msgs.msg import Point
 
-#The following collection of pixel locations and corresponding relative
-#ground plane locations are used to compute our homography matrix
+# The following collection of pixel locations and corresponding relative
+# ground plane locations are used to compute our homography matrix
 
 # PTS_IMAGE_PLANE units are in pixels
 # see README.md for coordinate frame description
 
 ######################################################
-## DUMMY POINTS -- ENTER YOUR MEASUREMENTS HERE
-#TODO: CHANGE THESE VALUES FOR THE STOP SIGN
-PTS_IMAGE_PLANE = [[420, 143], #325,257
-                   [358,141], #443,257
-                   [447,129], #428,238
-                   [350,127]] # 334,238
+# DUMMY POINTS -- ENTER YOUR MEASUREMENTS HERE
+# TODO: CHANGE THESE VALUES FOR THE STOP SIGN
+PTS_IMAGE_PLANE = [[420, 143],  # 325,257
+                   [358, 141],  # 443,257
+                   [447, 129],  # 428,238
+                   [350, 127]]  # 334,238
 ######################################################
 
 # PTS_GROUND_PLANE units are in inches
 # car looks along positive x axis with positive y axis to left
 
 ######################################################
-## DUMMY POINTS -- ENTER YOUR MEASUREMENTS HERE
+# DUMMY POINTS -- ENTER YOUR MEASUREMENTS HERE
 PTS_GROUND_PLANE = [[37.5, -4.25],
                     [37.5, 4.25],
                     [23, -4.25],
-                    [23, 4.25]] # dummy points
+                    [23, 4.25]]  # dummy points
 ######################################################
 
 METERS_PER_INCH = 0.0254
@@ -40,16 +40,20 @@ METERS_PER_INCH = 0.0254
 
 class SignLocator:
     def __init__(self):
-        self.line_px_sub = rospy.Subscriber("/relative_sign_px", ObjectLocationPixel, self.sign_detection_callback)
-        self.cone_pub = rospy.Publisher("/relative_sign", ObjectLocation, queue_size=10)
+        self.line_px_sub = rospy.Subscriber(
+            "/relative_sign_px", ObjectLocationPixel, self.sign_detection_callback)
+        self.cone_pub = rospy.Publisher(
+            "/relative_sign", ObjectLocation, queue_size=10)
 
-        self.mouse_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color_mouse_left", Point, self.mouse_callback)
-        self.marker_pub = rospy.Publisher("/sign_marker",Marker, queue_size=1)
+        self.mouse_sub = rospy.Subscriber(
+            "/zed/zed_node/rgb/image_rect_color_mouse_left", Point, self.mouse_callback)
+        self.marker_pub = rospy.Publisher("/sign_marker", Marker, queue_size=1)
 
         if not len(PTS_GROUND_PLANE) == len(PTS_IMAGE_PLANE):
-            rospy.logerr("ERROR: PTS_GROUND_PLANE and PTS_IMAGE_PLANE should be of same length")
+            rospy.logerr(
+                "ERROR: PTS_GROUND_PLANE and PTS_IMAGE_PLANE should be of same length")
 
-        #Initialize data into a homography matrix
+        # Initialize data into a homography matrix
 
         np_pts_ground = np.array(PTS_GROUND_PLANE)
         np_pts_ground = np_pts_ground * METERS_PER_INCH
@@ -61,26 +65,25 @@ class SignLocator:
 
         self.h, err = cv2.findHomography(np_pts_image, np_pts_ground)
 
-    def mouse_callback(self,msg):
-        x, y = self.transformUvToXy(msg.x,msg.y)
-        self.draw_marker(x,y,"/map")
+    def mouse_callback(self, msg):
+        x, y = self.transformUvToXy(msg.x, msg.y)
+        self.draw_marker(x, y, "/map")
 
     def sign_detection_callback(self, msg):
-        #Extract information from message
+        # Extract information from message
         u = msg.u
         v = msg.v
 
-        #Call to main function
+        # Call to main function
         x, y = self.transformUvToXy(u, v)
 
-        #Publish relative xy position of object in real world
+        # Publish relative xy position of object in real world
         relative_xy_msg = ObjectLocation()
         relative_xy_msg.x = x
         relative_xy_msg.y = y
 
         self.cone_pub.publish(relative_xy_msg)
-        self.draw_marker(x,y,"/map")
-
+        self.draw_marker(x, y, "/map")
 
     def transformUvToXy(self, u, v):
         """

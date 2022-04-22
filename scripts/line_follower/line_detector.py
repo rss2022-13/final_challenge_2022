@@ -6,7 +6,7 @@ import rospy
 from cv_bridge import CvBridge
 
 from sensor_msgs.msg import Image
-from city_driving.msg import ObjectLocationPixel
+from final_challenge.msg import ObjectLocationPixel
 
 # import your color segmentation algorithm; call this function in ros_image_callback!
 from computer_vision.color_segmentation import cd_color_segmentation

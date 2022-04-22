@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 
 from visualization_msgs.msg import Marker
-from city_driving.msg import ObjectLocation, ObjectLocationPixel
+from final_challenge.msg import ObjectLocation, ObjectLocationPixel
 from geometry_msgs.msg import Point
 
 #The following collection of pixel locations and corresponding relative
