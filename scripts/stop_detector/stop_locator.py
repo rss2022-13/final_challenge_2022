@@ -18,10 +18,10 @@ from geometry_msgs.msg import Point
 ######################################################
 # DUMMY POINTS -- ENTER YOUR MEASUREMENTS HERE
 # TODO: CHANGE THESE VALUES FOR THE STOP SIGN
-PTS_IMAGE_PLANE = [[420, 143],  # 325,257
-                   [358, 141],  # 443,257
-                   [447, 129],  # 428,238
-                   [350, 127]]  # 334,238
+PTS_IMAGE_PLANE = [[417, 152],  # 325,257
+                   [351, 151],  # 443,257
+                   [434, 142],  # 428,238
+                   [351, 142]]  # 334,238
 ######################################################
 
 # PTS_GROUND_PLANE units are in inches
@@ -29,10 +29,10 @@ PTS_IMAGE_PLANE = [[420, 143],  # 325,257
 
 ######################################################
 # DUMMY POINTS -- ENTER YOUR MEASUREMENTS HERE
-PTS_GROUND_PLANE = [[37.5, -4.25],
-                    [37.5, 4.25],
-                    [23, -4.25],
-                    [23, 4.25]]  # dummy points
+PTS_GROUND_PLANE = [[37, -4.25],
+                    [37, 4.25],
+                    [27.25, -4.25],
+                    [27.25, 4.25]]  # dummy points
 ######################################################
 
 METERS_PER_INCH = 0.0254
