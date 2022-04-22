@@ -1,0 +1,31 @@
+<launch>
+  <node pkg="final_challenge" name="stop_detector" type="stop_detector.py" output="screen">
+  </node>
+  <node pkg="final_challenge" name="stop_locator" type="stop_locator.py" output="screen">
+  </node>
+  <node pkg="final_challenge" name="stop_controller" type="stop_controller.py" output="screen">
+    <param name="drive_topic" value="/vesc/ackermann_cmd_mux/input/navigation" />
+    <param name="ang_P" value="0.45" />
+    <param name="ang_D" value="0.25" />
+    <param name="dist_P" value="1" />
+    <param name="dist_D" value="0.2" />
+  </node>
+  <node pkg="final_challenge" name="line_detector" type="line_detector.py" output="screen">
+  </node>
+  <node pkg="final_challenge" name="line_locator" type="line_locator.py" output="screen">
+  </node>
+  <node pkg="final_challenge" name="line_follower" type="line_follower.py" output="screen">
+    <param name="drive_topic" value="/vesc/ackermann_cmd_mux/input/navigation" />
+    <param name="ang_P" value="0.45" />
+    <param name="ang_D" value="0.25" />
+    <param name="dist_P" value="1" />
+    <param name="dist_D" value="0.2" />
+  </node>
+  <node pkg="final_challenge" name="main_controller" type="main_controller.py" output="screen">
+  </node>
+  <node pkg="final_challenge" name="wash_detector" type="wash_detector.py" output="screen">
+  </node>
+  <node pkg="final_challenge" name="wash_driver" type="wash_driver.py" output="screen">
+    <param name="drive_topic" value="/vesc/ackermann_cmd_mux/input/navigation" />
+  </node>
+</launch>
