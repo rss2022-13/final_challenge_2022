@@ -147,7 +147,15 @@ The Em-tire, in their infinite wisdom and with their love of buzz words, has alr
 Of course, you are to avoid crashing into buildings as well. Somewhere in the city there is also a car wash; you've heard that going through the car wash might save you some time (and provide a bonus as the Em-tire values cleanliness), though it seems that your car's LIDAR will not work inside...
 
 
-### Race Day
+### Clarifications
+
+- The orange line will never drive you into obstacles.
+
+- The orange line will never split.
+
+- The orange line will not enter the car wash. The car wash entrance and exit will be covered in blue streamers which will look like a wall to your lidar. The car wash will have walls bounding its interior and the orange line will pass by its exit.
+
+- The bricks will not be in the way of the robot. They will just be visual distractors that will make stop sign detection more difficult than simply color segmentation.
 
 ### Tips
 
@@ -282,8 +290,23 @@ At present, running the machine learning models for the final challenge will nee
 *How many stop signs will there be on race day?* 
 * Three.
 
+*How far should the car stop before the stop sign?*
+* The front of your car must stop between .75-1 meters in front of the stop sign to receive credit for the stop. On race day, there will be tape on the ground so we can check if your car has stopped at the correct distance. Stop signs will all be the same size as the ones at lab. They will always be perpendicular to the road and not visible from other sections of the city.
+
 *Is it possible to avoid going through the car wash?*
-* Yes, there will be an alternate route that is slightly longer
+* Yes, there will be an alternate route that is slightly longer.
+
+*How are the roads marked? What should the car do at intersections?*
+* The road will be marked with orange tape (we have rolls of tape you will be able to use). There will be no intersections marked with orange tape; there will be one continuous orange path through the mini city. There will be one turn off of the main road for teams choosing to go through the car wash. You will be able to see the blue car wash from the main orange road.
+
+*How should we navigate through the car wash?*
+* The car wash will be the only blue object in the mini-city. There will be buildings lining the road along the path to the car wash and leading out of it. Idea: try wall-following after you've driven through the front to get through the car wash and go through it! Note that your car's lidar will get tricked by the dangling blue strips... The car wash side street will meet up with the orange path; you should begin following the orange path in the direction that results in the lesser turn angle for your car.
+
+*Will there be anything else in the city besides buildings, orange road markers, stop signs, and the car wash?*
+* Yes! There will be red distractor bricks, distractor signs, etc... Your car should ignore all of these extra items!
+
+*Will we have a map of the city?*
+* No map! You should be able to navigate through without knowing what the city looks like beforehand.
 
 ### Part C: Rainbow Road Challenge
 
