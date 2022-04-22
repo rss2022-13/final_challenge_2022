@@ -11,7 +11,7 @@ class SignDetector:
         self.detector = StopSignDetector()
         self.publisher = rospy.Publisher("/relative_sign_px", SignLocationPixel, queue_size=10)
         self.subscriber = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.callback)
-
+    
     def callback(self, img_msg):
         # Process image without CV Bridge
         np_img = np.frombuffer(img_msg.data, dtype=np.uint8).reshape(img_msg.height, img_msg.width, -1)
@@ -30,6 +30,6 @@ class SignDetector:
         self.publisher.publish(out)
 
 if __name__=="__main__":
-    rospy.init_node("stop_sign_detector")
+    rospy.init_node("stop_detector")
     detect = SignDetector()
     rospy.spin()
