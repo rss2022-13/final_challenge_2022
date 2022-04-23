@@ -20,8 +20,8 @@ def image_print(img):
 	Press any key to continue.
 	"""
 	cv2.imshow("image", img)
-	cv2.waitKey(0)
-	cv2.destroyAllWindows()
+	cv2.waitKey(3)
+	#cv2.destroyAllWindows()
 
 def cd_color_segmentation(img, template):
 	"""
@@ -40,8 +40,8 @@ def cd_color_segmentation(img, template):
 	hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
         #colors in hsv
-        light_orange = np.array([10, 125, 125])
-        dark_orange = np.array([35,255,255])
+        light_orange = np.array([3, 140, 140])
+        dark_orange = np.array([25,255,255])
 	
         #light_orange = np.array([5, 200, 200])
         #dark_orange = np.array([35,255,255])
@@ -99,6 +99,21 @@ def cd_color_segmentation(img, template):
 
         #image_print(img)
         #image_print(gray)
-        print(bounding_box)
-        # image_print(output)	
+        print(bounding_box)	
+        # image_print(output)
         return bounding_box
+
+def lane_color_segmentation(img):
+    """
+    Implement lane line detection through color segmentation
+    Choose only the white lines
+    """
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+    white_lower = np.array([0, 0, 180]) # These values are based off of my desk in my dorm
+    white_upper = np.array([179, 10, 255]) # Will test on track lines later to see if accurate
+
+    mask = cv2.inRange(hsv, white_lower, white_upper)
+    output = cv2.bitwise_and(img,img, mask=mask)
+    image_print(output) # For debugging issues with detecting track lines
+    pass # will return a list of the non-zero pixel locations in the image later
