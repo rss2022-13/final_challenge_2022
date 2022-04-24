@@ -36,13 +36,13 @@ class LaneDetector():
         # pixel location in the image.
 
         # Will probably redefine the below later
-        x, y = lane_color_segmentation(image, None)
+        x, y = lane_color_segmentation(image)
 
-        pos = LaneLocationPixels()
-        pos.u = x
-        pos.v = y
+        #pos = LaneLocationPixels()
+        #pos.u = x
+        #pos.v = y
 
-        self.lane_pub.publish(pos)
+        #self.lane_pub.publish(pos)
         # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
         #################################
 
@@ -55,7 +55,7 @@ class LaneDetector():
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('ConeDetector', anonymous=True)
+        rospy.init_node('LaneDetector', anonymous=True)
         LaneDetector()
         rospy.spin()
     except rospy.ROSInterruptException:
