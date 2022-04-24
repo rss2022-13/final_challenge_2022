@@ -107,7 +107,7 @@ def lane_color_segmentation(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     white_lower = np.array([0, 0, 180]) # These values are based off of my desk in my dorm
-    white_upper = np.array([179, 10, 255]) # Will test on track lines later to see if accurate
+    white_upper = np.array([179, 40, 255]) # Will test on track lines later to see if accurate
 
     color_mask = cv2.inRange(hsv, white_lower, white_upper)
     isolated_color = cv2.bitwise_and(img,img, mask=color_mask)
@@ -117,12 +117,12 @@ def lane_color_segmentation(img):
     middle_gap = 1.0*img.shape[1]/8.0 # Gap between left and right detection rectangles in mask
     
     # Top left and bottom right points for left lane line detection box
-    topLeft_L = (0, 4.0*img.shape[0]//8)
-    botRight_L = ((img.shape[1]-middle_gap)//2, 6.0*img.shape[0]//8)
+    topLeft_L = (0, int(4.0*img.shape[0]/8))
+    botRight_L = (int((img.shape[1]-middle_gap)/2), int(6.0*img.shape[0]/8))
     
     # Top left and bottom right points for right lane line detection box
-    topLeft_R = ((img.shape[1]+middle_gap)//2, 4.0*img.shape[0]//8)
-    botRight_R = (img.shape[1], 6.0*img.shape[0]//8)
+    topLeft_R = (int((img.shape[1]+middle_gap)/2), int(4.0*img.shape[0]/8))
+    botRight_R = (img.shape[1], int(6.0*img.shape[0]//8))
 
     # Draw the left rectangle onto an image
     left_rectangle = cv2.rectangle(blank,topLeft_L, botRight_L, (255,255,255),-1)
@@ -132,15 +132,13 @@ def lane_color_segmentation(img):
 
     output = cv2.bitwise_and(isolated_color, isolated_color, mask=both_rectangles)
 
-    gray = cv2.cvtColor(output, cv2.COLOR_BG$2GRAY)
+    gray = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
     
     kernel = np.ones((5,5), np.uint8)
     kernel2 = np.ones((5,5), np.uint8)
     #gray = cv2.dilate(gray,kernel2, iterations=1) 
     gray = cv2.erode(gray, kernel, iterations=1)
-    # This is directly copied over from the previous function, but I think
-    # we should use erosion instead of dilation since we are looking for 
-    # lines, not objects here. Will test Sunday afternoon
+    # Eroding works really well
 
     ret,threshold = cv2.threshold(gray,50,255,cv2.THRESH_BINARY)
 
@@ -153,7 +151,7 @@ def lane_color_segmentation(img):
     # There will probably be another function where we try to detect the closest of those for the lane
     
     # For debugging issues with detecting track lines
-    image_print(img)
+    #image_print(img)
     image_print(gray)
     
     pass # will return a list of the non-zero pixel locations in the image later

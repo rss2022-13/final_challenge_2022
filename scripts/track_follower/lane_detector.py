@@ -1,14 +1,20 @@
+#!/usr/bin/env python
+
 import numpy as np
 import rospy
+import sys
+from os import path
+
+sys.path.append('/home/racecar/racecar_ws/src/final_challenge_2022/scripts/computer_vision')
 
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point
-from visual_servoing.msg import LaneLocationPixels
+from final_challenge.msg import LaneLocationPixels
+from color_segmentation import lane_color_segmentation
 
-from computer_vision.color_segmentation import lane_color_segmentation
 
 class LaneDetector():
     """
