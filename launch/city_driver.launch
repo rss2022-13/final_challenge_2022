@@ -23,9 +23,11 @@
   </node>
   <node pkg="final_challenge" name="main_controller" type="main_controller.py" output="screen">
   </node>
-  <node pkg="final_challenge" name="wash_detector" type="wash_detector.py" output="screen">
+  <node pkg="final_challenge" name="wash_detector" type="carwash_detector.py" output="screen">
   </node>
-  <node pkg="final_challenge" name="wash_driver" type="wash_driver.py" output="screen">
+  <node pkg="final_challenge" name="wash_driver" type="carwash_controller.py" output="screen">
     <param name="drive_topic" value="/vesc/ackermann_cmd_mux/input/navigation" />
+    <param name="carwash_velocity" value="0.5" />
+    <param name="carwash_desired_distance" value="0.1" />
   </node>
 </launch>

@@ -36,8 +36,8 @@ class LaneDetector():
         # pixel location in the image.
 
         # Will probably redefine the below later
-        x, y = lane_color_segmentation(image)
-
+        lane_color_segmentation(image)
+        
         #pos = LaneLocationPixels()
         #pos.u = x
         #pos.v = y

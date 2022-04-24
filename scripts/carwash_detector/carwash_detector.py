@@ -12,19 +12,19 @@ from final_challenge.msg import ObjectLocationPixel
 from computer_vision.color_segmentation import cd_color_segmentation
 
 
-class LineDetector():
+class CarwashDetector():
     """
     A class for applying your cone detection algorithms to the real robot.
     Subscribes to: /zed/zed_node/rgb/image_rect_color (Image) : the live RGB image from the onboard ZED camera.
-    Publishes to: /relative_cone_px (ConeLocationPixel) : the coordinates of the cone in the image frame (units are pixels).
+    Publishes to: /relative_carwash_px (ObjectLocationPixel) : the coordinates of the carwash in the image frame (units are pixels).
     """
     def __init__(self):
-        # toggle line follower vs cone parker
+        # toggle line follower vs carwash
         self.LineFollower = False
 
         # Subscribe to ZED camera RGB frames
-        self.cone_pub = rospy.Publisher("/relative_line_px", ObjectLocationPixel, queue_size=10)
-        self.debug_pub = rospy.Publisher("/line_debug_img", Image, queue_size=10)
+        self.carwash_pub = rospy.Publisher("/relative_carwash_px", ObjectLocationPixel, queue_size=10)
+        self.debug_pub = rospy.Publisher("/carwash_debug_img", Image, queue_size=10)
         self.image_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.image_callback)
         self.bridge = CvBridge() # Converts between ROS images and OpenCV Images
 
@@ -39,13 +39,13 @@ class LineDetector():
         # YOUR CODE HERE
         # detect the cone and publish its
         # pixel location in the image.
-        (x1,y1), (x2,y2) = cd_color_segmentation(image, None, "orange")
+        (x1,y1), (x2,y2) = cd_color_segmentation(image, None, "blue")
         
         pos = ObjectLocationPixel()
         pos.u = (x1+x2)/2.0
         pos.v = y2
         
-        self.cone_pub.publish(pos)
+        self.carwash_pub.publish(pos)
         # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
         #################################
 
@@ -58,8 +58,8 @@ class LineDetector():
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('line_detector', anonymous=True)
-        LineDetector()
+        rospy.init_node('carwash_detector', anonymous=True)
+        CarwashDetector()
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
