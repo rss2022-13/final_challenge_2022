@@ -113,7 +113,51 @@ def lane_color_segmentation(img):
     white_lower = np.array([0, 0, 180]) # These values are based off of my desk in my dorm
     white_upper = np.array([179, 10, 255]) # Will test on track lines later to see if accurate
 
-    mask = cv2.inRange(hsv, white_lower, white_upper)
-    output = cv2.bitwise_and(img,img, mask=mask)
-    image_print(output) # For debugging issues with detecting track lines
+    color_mask = cv2.inRange(hsv, white_lower, white_upper)
+    isolated_color = cv2.bitwise_and(img,img, mask=color_mask)
+
+    blank = np.zeros(img.shape[:2], dtype = "uint8")
+
+    middle_gap = 1.0*img.shape[1]/8.0 # Gap between left and right detection rectangles in mask
+    
+    # Top left and bottom right points for left lane line detection box
+    topLeft_L = (0, 4.0*img.shape[0]//8)
+    botRight_L = ((img.shape[1]-middle_gap)//2, 6.0*img.shape[0]//8)
+    
+    # Top left and bottom right points for right lane line detection box
+    topLeft_R = ((img.shape[1]+middle_gap)//2, 4.0*img.shape[0]//8)
+    botRight_R = (img.shape[1], 6.0*img.shape[0]//8)
+
+    # Draw the left rectangle onto an image
+    left_rectangle = cv2.rectangle(blank,topLeft_L, botRight_L, (255,255,255),-1)
+    
+    #Then draw the right rectangle as well
+    both_rectangles = cv2.rectangle(left_rectangle, topLeft_R, botRight_R, (255,255,255),-1)
+
+    output = cv2.bitwise_and(isolated_color, isolated_color, mask=both_rectangles)
+
+    gray = cv2.cvtColor(output, cv2.COLOR_BG$2GRAY)
+    
+    kernel = np.ones((5,5), np.uint8)
+    kernel2 = np.ones((5,5), np.uint8)
+    #gray = cv2.dilate(gray,kernel2, iterations=1) 
+    gray = cv2.erode(gray, kernel, iterations=1)
+    # This is directly copied over from the previous function, but I think
+    # we should use erosion instead of dilation since we are looking for 
+    # lines, not objects here. Will test Sunday afternoon
+
+    ret,threshold = cv2.threshold(gray,50,255,cv2.THRESH_BINARY)
+
+    contours = cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    shape = gray.copy()
+    cv2.drawContours(shape, contours[1], -1, (255,0,0), 2)
+
+    # This should later return some list of the pixel points that correspond to the white lines
+    # There will probably be another function where we try to detect the closest of those for the lane
+    
+    # For debugging issues with detecting track lines
+    image_print(img)
+    image_print(gray)
+    
     pass # will return a list of the non-zero pixel locations in the image later

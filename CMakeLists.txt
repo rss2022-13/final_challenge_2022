@@ -56,6 +56,8 @@ find_package(catkin REQUIRED COMPONENTS
    ObjectLocationPixel.msg
    ObjectLocation.msg
    FollowerError.msg
+   LaneError.msg
+   LaneLocationPixels.msg
    CarWash.msg
    Finish.msg
    State.msg
