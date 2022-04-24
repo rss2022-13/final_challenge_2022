@@ -23,12 +23,13 @@ def image_print(img):
 	cv2.waitKey(3)
 	#cv2.destroyAllWindows()
 
-def cd_color_segmentation(img, template):
+def cd_color_segmentation(img, template, color):
 	"""
 	Implement the cone detection using color segmentation algorithm
 	Input:
 		img: np.3darray; the input image with a cone to be detected. BGR.
 		template_file_path; Not required, but can optionally be used to automate setting hue filter values.
+                color: "orange", "blue" depending on what we are detecting
 	Return:
 		bbox: ((x1, y1), (x2, y2)); the bounding box of the cone, unit in px
 				(x1, y1) is the top left of the bbox and (x2, y2) is the bottom right of the bbox
@@ -40,17 +41,12 @@ def cd_color_segmentation(img, template):
 	hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
         #colors in hsv
-        light_orange = np.array([3, 140, 140])
-        dark_orange = np.array([25,255,255])
-	
-        #light_orange = np.array([5, 200, 200])
-        #dark_orange = np.array([35,255,255])
-	
-	#light_orange = np.array([5, 200, 200])
-        #dark_orange = np.array([25,255,255])
-        
-	#light_orange = np.array([5, 100, 20])
-        #dark_orange = np.array([15,255,255])
+	if color == "orange":
+            light = np.array([3, 140, 140])
+            dark = np.array([25,255,255])
+        else: #blue
+            light = np.array([208, 50, 70])
+            dark = np.array([262, 100, 100])
 
         mask = cv2.inRange(hsv, light_orange, dark_orange)
         isolated_color = cv2.bitwise_and(img,img, mask= mask)
