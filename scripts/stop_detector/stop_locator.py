@@ -6,8 +6,10 @@ import numpy as np
 import cv2
 
 from visualization_msgs.msg import Marker
-from final_challenge.msg import ObjectLocation, ObjectLocationPixel
+from final_challenge.msg import ObjectLocation, ObjectLocationPixel, Finish
 from geometry_msgs.msg import Point
+
+import time
 
 # The following collection of pixel locations and corresponding relative
 # ground plane locations are used to compute our homography matrix
@@ -40,13 +42,11 @@ METERS_PER_INCH = 0.0254
 
 class SignLocator:
     def __init__(self):
-        self.line_px_sub = rospy.Subscriber(
-            "/relative_sign_px", ObjectLocationPixel, self.sign_detection_callback)
-        self.cone_pub = rospy.Publisher(
-            "/relative_sign", ObjectLocation, queue_size=10)
+        self.line_px_sub = rospy.Subscriber("/relative_sign_px", ObjectLocationPixel, self.sign_detection_callback)
+        self.cone_pub = rospy.Publisher("/relative_sign", ObjectLocation, queue_size=10)
+        self.finish_sub = rospy.Subscriber("/finished", Finish, self.end_process_callback)
 
-        self.mouse_sub = rospy.Subscriber(
-            "/zed/zed_node/rgb/image_rect_color_mouse_left", Point, self.mouse_callback)
+        self.mouse_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color_mouse_left", Point, self.mouse_callback)
         self.marker_pub = rospy.Publisher("/sign_marker", Marker, queue_size=1)
 
         if not len(PTS_GROUND_PLANE) == len(PTS_IMAGE_PLANE):
@@ -65,6 +65,11 @@ class SignLocator:
 
         self.h, err = cv2.findHomography(np_pts_image, np_pts_ground)
 
+        # for changing states with a cooldown
+        self.cooldown = 3
+        self.can_pub = True
+        self.timer = 0
+
     def mouse_callback(self, msg):
         x, y = self.transformUvToXy(msg.x, msg.y)
         self.draw_marker(x, y, "/map")
@@ -82,8 +87,9 @@ class SignLocator:
         relative_xy_msg.x = x
         relative_xy_msg.y = y
 
-        self.cone_pub.publish(relative_xy_msg)
-        self.draw_marker(x, y, "/map")
+        if self.can_pub:
+            self.cone_pub.publish(relative_xy_msg)
+            self.draw_marker(x, y, "/map")
 
     def transformUvToXy(self, u, v):
         """
@@ -125,6 +131,17 @@ class SignLocator:
         marker.pose.position.x = cone_x
         marker.pose.position.y = cone_y
         self.marker_pub.publish(marker)
+
+    def end_process_callback(self,finished):
+        if finished.process == "stop":
+            self.can_pub = False
+            self.timer = time.time()
+
+            #just pause all outputs from this node for a little while
+            while True:
+                if time.time() - self.timer > self.cooldown:
+                    break
+            self.can_pub = True
 
 
 if __name__ == "__main__":

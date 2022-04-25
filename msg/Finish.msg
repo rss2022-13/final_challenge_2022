@@ -1,1 +1,1 @@
-bool isFinished
+string process

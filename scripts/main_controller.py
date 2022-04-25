@@ -24,6 +24,9 @@ class Controller:
         self.state = 0
         self.prev_state = 0
 
+        # 3 Second cooldown when we change states
+        self.cooldown = 3
+
     
     def sign_callback(self,data):
         '''
@@ -50,10 +53,12 @@ class Controller:
             self.state_pub.publish(out)
 
     def end_process_callback(self,process):
-        if self.prev_state == 2:
-            self.prev_state, self.state = self.state, self.prev_state
-        else:
-            self.prev_state, self.state = self.state, 0
+        '''
+        Just takes us back to the previous state we were at to resume whatever process we were on.
+        '''
+        self.prev_state, self.state = self.state, self.prev_state
+
+        
 
         out = State()
         out.state = self.state

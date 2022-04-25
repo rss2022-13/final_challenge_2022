@@ -2,10 +2,11 @@
 
 import rospy
 import math
+import time
 
 
 from ackermann_msgs.msg import AckermannDriveStamped
-from final_challenge.msg import ObjectLocation, FollowerError, State
+from final_challenge.msg import ObjectLocation, FollowerError, State, Finish
 
 class StopController():
     """
@@ -19,11 +20,12 @@ class StopController():
         DRIVE_TOPIC = rospy.get_param("~drive_topic") # set in launch file; different for simulator vs racecar
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
         self.error_pub = rospy.Publisher("/stopping_error", FollowerError, queue_size=10)
+        self.finish_pub = rospy.Publisher("/finished", Finish, queue_size=1)
 
         self.state_sub = rospy.Subscriber("/state", State, self.state_callback)
         self.can_publish = False
 
-        self.parking_distance = .5 # meters; try playing with this number!
+        self.parking_distance = .8 # meters; try playing with this number!
         self.relative_x = 0
         self.relative_y = 0
         self.speed = 0.5
@@ -34,6 +36,9 @@ class StopController():
         self.ang_D = rospy.get_param("~ang_D")
         self.prev_dist_err = 0
         self.prev_ang_err = 0
+
+        self.stop_time = 1
+        self.timer_set = False
 
     def state_callback(self,state):
         if state.state == 1:
@@ -68,12 +73,16 @@ class StopController():
             self.speed = -0.5
             self.steer_angle = -abs(ang_err)/ang_err * abs(ang_err)
 
-        '''
+        
         #stop if close enough
         if abs(dist_err) < 0.05 and abs(ang_err) < 0.1:
             self.speed = 0
             self.steer_angle = 0
-        '''
+            if not self.timer_set and self.can_publish:
+                self.stop_time = time.time()
+                self.timer_set = True
+
+        
 
         #print('speed:', self.speed, 'steer:', self.steer_angle, 'ang err:', ang_err)
         self.prev_ang_err = ang_err
@@ -112,6 +121,11 @@ class StopController():
         drive_cmd.drive.steering_angle = self.steer_angle
         if self.can_publish:
             self.drive_pub.publish(drive_cmd)
+            if self.timer_set and time.time() - self.stop_time > .5:
+                out = Finish()
+                out.process = "stop"
+                self.timer_set = False
+                self.finish_pub.publish(out)
             self.error_publisher()
 
     def error_publisher(self):
