@@ -2,29 +2,30 @@
 
 import numpy as np
 import rospy
+import sys
+from os import path
 
-from cv_bridge import CvBridge
+sys.path.append('/home/racecar/racecar_ws/src/final_challenge_2022/scripts/computer_vision')
+
+import cv2
+from cv_bridge import CvBridge, CvBridgeError
 
 from sensor_msgs.msg import Image
-from final_challenge.msg import ObjectLocationPixel
+from geometry_msgs.msg import Point
+from final_challenge.msg import LaneLocationPixels
+from color_segmentation import lane_color_segmentation
 
-# import your color segmentation algorithm; call this function in ros_image_callback!
-from computer_vision.color_segmentation import cd_color_segmentation
 
-
-class LineDetector():
+class LaneDetector():
     """
     A class for applying your cone detection algorithms to the real robot.
     Subscribes to: /zed/zed_node/rgb/image_rect_color (Image) : the live RGB image from the onboard ZED camera.
     Publishes to: /relative_cone_px (ConeLocationPixel) : the coordinates of the cone in the image frame (units are pixels).
     """
     def __init__(self):
-        # toggle line follower vs cone parker
-        self.LineFollower = False
-
         # Subscribe to ZED camera RGB frames
-        self.cone_pub = rospy.Publisher("/relative_line_px", ObjectLocationPixel, queue_size=10)
-        self.debug_pub = rospy.Publisher("/line_debug_img", Image, queue_size=10)
+        self.lane_pub = rospy.Publisher("/relative_lane_px", LaneLocationPixels, queue_size=10)
+        self.debug_pub = rospy.Publisher("/lane_debug_img", Image, queue_size=10)
         self.image_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.image_callback)
         self.bridge = CvBridge() # Converts between ROS images and OpenCV Images
 
@@ -39,18 +40,20 @@ class LineDetector():
         # YOUR CODE HERE
         # detect the cone and publish its
         # pixel location in the image.
-        (x1,y1), (x2,y2) = cd_color_segmentation(image, None, "orange")
+
+        # Will probably redefine the below later
+        lane_color_segmentation(image)
         
-        pos = ObjectLocationPixel()
-        pos.u = (x1+x2)/2.0
-        pos.v = y2
-        
-        self.cone_pub.publish(pos)
+        #pos = LaneLocationPixels()
+        #pos.u = x
+        #pos.v = y
+
+        #self.lane_pub.publish(pos)
         # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
         #################################
 
-        
-        
+
+
 
         debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
         self.debug_pub.publish(debug_msg)
@@ -58,8 +61,8 @@ class LineDetector():
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('line_detector', anonymous=True)
-        LineDetector()
+        rospy.init_node('LaneDetector', anonymous=True)
+        LaneDetector()
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
