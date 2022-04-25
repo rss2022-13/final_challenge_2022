@@ -1,4 +1,5 @@
 import rospy
+import numpy as np
 from final_challenge_2022.msg import ObjectLocation, State, CarWash, Finish
 from ackermann_msgs.msg import AckermannDriveStamped
 
@@ -59,7 +60,7 @@ class Controller:
         Listens to the lidar detector, and if walls are detected close to car we change our state
         to the inside car wash state and publish.
         '''
-        length = x.size
+        length = data.size
         left = data.ranges[:length/3]
         right = data.ranges[2*length/3:]
         carwash_size = 0.1 ##change based on car wash size
