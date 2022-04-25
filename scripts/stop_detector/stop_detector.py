@@ -14,6 +14,12 @@ class SignDetector:
     
     def callback(self, img_msg):
         # Process image without CV Bridge
+        '''
+        for using depth mapping, output bouding box coordinates, then in locator just take the depth image
+        and use bounding box to get overall depth of the sign
+
+        learn which values are associated with which distances
+        '''
         np_img = np.frombuffer(img_msg.data, dtype=np.uint8).reshape(img_msg.height, img_msg.width, -1)
         bgr_img = np_img[:,:,:-1]
         rgb_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
