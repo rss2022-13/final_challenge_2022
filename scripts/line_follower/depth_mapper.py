@@ -46,7 +46,7 @@ class DepthMapper():
         this image since they are activated by two different topics.
         '''
 
-        np_img = np.frombuffer(img_msg.data, dtype=np.uint8).reshape(img_msg.height, img_msg.width, -1)
+        np_img = np.frombuffer(img_msg.data, dtype=np.uint8).reshape(img_msg.height, img_msg.width)
         # average out the pixel values so that we avoid outliers
         print np_img.shape
         print self.mask.shape
