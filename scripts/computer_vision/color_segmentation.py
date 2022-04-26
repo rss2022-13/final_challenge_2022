@@ -99,42 +99,52 @@ def cd_color_segmentation(img, template, color):
         # image_print(output)
         return bounding_box
 
-def lane_color_segmentation(img):
+def lane_color_segmentation(img, side):
     """
     Implement lane line detection through color segmentation
     Choose only the white lines
+
+    img: OpenCV 2 Image, BGR format
+    side: dictates which camera it came from (LEFT or RIGHT),
     """
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-    white_lower = np.array([0, 0, 180]) # These values are based off of my desk in my dorm
-    white_upper = np.array([179, 40, 255]) # Will test on track lines later to see if accurate
+    white_lower = np.array([0, 0, 160]) # These values are based off of my desk in my dorm
+    white_upper = np.array([179, 50, 255]) # Will test on track lines later to see if accurate
 
     color_mask = cv2.inRange(hsv, white_lower, white_upper)
     isolated_color = cv2.bitwise_and(img,img, mask=color_mask)
 
     blank = np.zeros(img.shape[:2], dtype = "uint8")
 
-    middle_gap = 1.0*img.shape[1]/8.0 # Gap between left and right detection rectangles in mask
+    middle_gap = 4.0*img.shape[1]/8.0 # Gap between left and right rectangle masks
     
+    start_height = 4.5/8.0
+    end_height = 6.0/8.0
     # Top left and bottom right points for left lane line detection box
-    topLeft_L = (0, int(4.0*img.shape[0]/8))
-    botRight_L = (int((img.shape[1]-middle_gap)/2), int(6.0*img.shape[0]/8))
+    topLeft_L = (0, int(start_height*img.shape[0]))
+    botRight_L = (int((img.shape[1]-middle_gap)/2), int(end_height*img.shape[0]))
     
     # Top left and bottom right points for right lane line detection box
-    topLeft_R = (int((img.shape[1]+middle_gap)/2), int(4.0*img.shape[0]/8))
-    botRight_R = (img.shape[1], int(6.0*img.shape[0]//8))
+    topLeft_R = (int((img.shape[1]+middle_gap)/2), int(start_height*img.shape[0]))
+    botRight_R = (img.shape[1], int(end_height*img.shape[0]))
 
     # Draw the left rectangle onto an image
-    left_rectangle = cv2.rectangle(blank,topLeft_L, botRight_L, (255,255,255),-1)
+    rectangle_mask = None
+    if side == "RIGHT":
+        rectangle_mask = cv2.rectangle(blank,topLeft_L, botRight_L, (255,255,255),-1)
+    elif side == "LEFT":
+        #Then draw the right rectangle as well
+        rectangle_mask = cv2.rectangle(blank, topLeft_R, botRight_R, (255,255,255),-1)
     
-    #Then draw the right rectangle as well
-    both_rectangles = cv2.rectangle(left_rectangle, topLeft_R, botRight_R, (255,255,255),-1)
+    if rectangle_mask is None:
+        return None
 
-    output = cv2.bitwise_and(isolated_color, isolated_color, mask=both_rectangles)
+    output = cv2.bitwise_and(isolated_color, isolated_color, mask=rectangle_mask)
 
     gray = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
     
-    kernel = np.ones((5,5), np.uint8)
+    kernel = np.ones((4,4), np.uint8)
     kernel2 = np.ones((5,5), np.uint8)
     #gray = cv2.dilate(gray,kernel2, iterations=1) 
     gray = cv2.erode(gray, kernel, iterations=1)
@@ -144,14 +154,18 @@ def lane_color_segmentation(img):
 
     contours = cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-    shape = gray.copy()
-    cv2.drawContours(shape, contours[1], -1, (255,0,0), 2)
+    #shape = gray.copy()
+    #cv2.drawContours(shape, contours[1], 0, (128,0,0), 2)
 
     # This should later return some list of the pixel points that correspond to the white lines
     # There will probably be another function where we try to detect the closest of those for the lane
+    img_array = np.array(gray)
+    locations = np.nonzero(img_array)
+    # print (locations[0][0], locations[1][0])
     
+    #print(img.shape)
     # For debugging issues with detecting track lines
     #image_print(img)
     image_print(gray)
     
-    pass # will return a list of the non-zero pixel locations in the image later
+    return locations # will return a list of the non-zero pixel locations in the image later

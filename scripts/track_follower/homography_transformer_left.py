@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 
+from matplotlib.pyplot import draw
 import rospy
 import numpy as np
 
 import cv2
+from cv_bridge import CvBridge, CvBridgeError
 
+from std_msgs.msg import String
+from sensor_msgs.msg import Image
+from ackermann_msgs.msg import AckermannDriveStamped
 from visualization_msgs.msg import Marker
-from final_challenge.msg import ObjectLocation, ObjectLocationPixel
+from visual_servoing.msg import ConeLocation, ConeLocationPixel
 from geometry_msgs.msg import Point
 
 #The following collection of pixel locations and corresponding relative
@@ -37,15 +42,14 @@ PTS_GROUND_PLANE = [[27.5, 6.125],
 METERS_PER_INCH = 0.0254
 
 
-class CarwashLocator:
+class HomographyTransformer:
     def __init__(self):
-        self.carwash_px_sub = rospy.Subscriber("/relative_carwash_px", ObjectLocationPixel, self.carwash_detection_callback)
-<<<<<<< Updated upstream
-        self.carwash_pub = rospy.Publisher("/relative_carwash", ObjectLocation, queue_size=10)
-=======
-        self.cone_pub = rospy.Publisher("/relative_carwash", ObjectLocation, queue_size=10)
->>>>>>> Stashed changes
-        
+        self.cone_px_sub = rospy.Subscriber("/relative_cone_px", ConeLocationPixel, self.cone_detection_callback)
+        self.cone_pub = rospy.Publisher("/relative_cone", ConeLocation, queue_size=10)
+
+        self.mouse_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color_mouse_left", Point, self.mouse_callback)
+        self.marker_pub = rospy.Publisher("/cone_marker",Marker, queue_size=1)
+
         if not len(PTS_GROUND_PLANE) == len(PTS_IMAGE_PLANE):
             rospy.logerr("ERROR: PTS_GROUND_PLANE and PTS_IMAGE_PLANE should be of same length")
 
@@ -61,7 +65,11 @@ class CarwashLocator:
 
         self.h, err = cv2.findHomography(np_pts_image, np_pts_ground)
 
-    def carwash_detection_callback(self, msg):
+    def mouse_callback(self,msg):
+        x, y = self.transformUvToXy(msg.x,msg.y)
+        self.draw_marker(x,y,"/map")
+
+    def cone_detection_callback(self, msg):
         #Extract information from message
         u = msg.u
         v = msg.v
@@ -70,11 +78,11 @@ class CarwashLocator:
         x, y = self.transformUvToXy(u, v)
 
         #Publish relative xy position of object in real world
-        relative_xy_msg = ObjectLocation()
-        relative_xy_msg.x = x
-        relative_xy_msg.y = y
+        relative_xy_msg = ConeLocation()
+        relative_xy_msg.x_pos = x
+        relative_xy_msg.y_pos = y
 
-        self.carwash_pub.publish(relative_xy_msg)
+        self.cone_pub.publish(relative_xy_msg)
         self.draw_marker(x,y,"/map")
 
 
@@ -99,9 +107,9 @@ class CarwashLocator:
         y = homogeneous_xy[1, 0]
         return x, y
 
-    def draw_marker(self, carwash_x, carwash_y, message_frame):
+    def draw_marker(self, cone_x, cone_y, message_frame):
         """
-        Publish a marker to represent the carwash in rviz.
+        Publish a marker to represent the cone in rviz.
         (Call this function if you want)
         """
         marker = Marker()
@@ -115,12 +123,12 @@ class CarwashLocator:
         marker.color.r = 1.0
         marker.color.g = .5
         marker.pose.orientation.w = 1.0
-        marker.pose.position.x = carwash_x
-        marker.pose.position.y = carwash_y
+        marker.pose.position.x = cone_x
+        marker.pose.position.y = cone_y
         self.marker_pub.publish(marker)
 
 
 if __name__ == "__main__":
-    rospy.init_node('carwash_locator')
-    homography_transformer = CarwashLocator()
+    rospy.init_node('homography_transformer')
+    homography_transformer = HomographyTransformer()
     rospy.spin()

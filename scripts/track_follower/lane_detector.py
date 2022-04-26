@@ -24,12 +24,14 @@ class LaneDetector():
     """
     def __init__(self):
         # Subscribe to ZED camera RGB frames
-        self.lane_pub = rospy.Publisher("/relative_lane_px", LaneLocationPixels, queue_size=10)
+        self.left_lane_pub = rospy.Publisher("/relative_left_lane_px", LaneLocationPixels, queue_size=10)
+        self.right_lane_pub = rospy.Publisher("/relative_right_lane_px", LaneLocationPixels, queue_size=10)
         self.debug_pub = rospy.Publisher("/lane_debug_img", Image, queue_size=10)
-        self.image_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.image_callback)
+        self.image_sub_r = rospy.Subscriber("/zed/zed_node/right/image_rect_color", Image, self.right_image_callback)
+        self.image_sub_l = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.left_image_callback)
         self.bridge = CvBridge() # Converts between ROS images and OpenCV Images
 
-    def image_callback(self, image_msg):
+    def image_callback(self, image_msg, side):
         # Apply your imported color segmentation function (cd_color_segmentation) to the image msg here
         # From your bounding box, take the center pixel on the bottom
         # (We know this pixel corresponds to a point on the ground plane)
@@ -42,21 +44,33 @@ class LaneDetector():
         # pixel location in the image.
 
         # Will probably redefine the below later
-        lane_color_segmentation(image)
-        
-        #pos = LaneLocationPixels()
-        #pos.u = x
-        #pos.v = y
+        ret = lane_color_segmentation(image, side)
+        pos = None
+        if ret is not None:
+            pos = LaneLocationPixels()
+            pos.v = ret[0]
+            #print "Num Columns: " + str(len(pos.v))
+            pos.u = ret[1]
+            #print "Num Rows: " + str(len(pos.u))
 
-        #self.lane_pub.publish(pos)
-        # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+        if side == "LEFT" and pos is not None:
+            self.left_lane_pub.publish(pos)
+        elif side == "RIGHT" and pos is not None:
+            self.right_lane_pub.publish(pos)
+
         #################################
+        # debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
+        # self.debug_pub.publish(debug_msg)
 
+    def right_image_callback(self, image_msg):
+        side = "RIGHT"
+        self.image_callback(image_msg, side)
 
+    def left_image_callback(self, image_msg):
+        side = "LEFT"
+        self.image_callback(image_msg, side)
 
-
-        debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
-        self.debug_pub.publish(debug_msg)
 
 
 if __name__ == '__main__':
