@@ -2,6 +2,7 @@
 
 import numpy as np
 import rospy
+import cv2
 
 from cv_bridge import CvBridge
 
@@ -25,7 +26,8 @@ class LineDetector():
         # Subscribe to ZED camera RGB frames
         self.cone_pub = rospy.Publisher("/relative_line_px", ObjectLocationPixel, queue_size=10)
         self.debug_pub = rospy.Publisher("/line_debug_img", Image, queue_size=10)
-        self.image_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.image_callback)
+        self.image_pub = rospy.Publisher("/binarized_image", Image, queue_size=10)
+        self.image_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.image_callback_depth)
         self.bridge = CvBridge() # Converts between ROS images and OpenCV Images
 
     def image_callback(self, image_msg):
@@ -49,11 +51,32 @@ class LineDetector():
         # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
         #################################
 
-        
-        
-
         debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
         self.debug_pub.publish(debug_msg)
+
+    def image_callback_depth(self, img):
+        image = self.bridge.imgmsg_to_cv2(img, "bgr8")
+
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+        light = np.array([3, 140, 140])
+        dark = np.array([25,255,255])
+
+        mask = cv2.inRange(hsv, light, dark)
+        isolated_color = cv2.bitwise_and(img,img, mask=mask)
+
+        gray = cv2.cvtColor(isolated_color, cv2.COLOR_BGR2GRAY)
+
+        # kernel = np.ones((5,5), np.uint8)
+        # gray = cv2.dilate(gray, kernel, iterations=1)
+        
+        # create a binary thresholded image
+        ret,binarized = cv2.threshold(gray,50,255,cv2.THRESH_BINARY)
+
+        output = self.bridge.cv2_to_imgmsg(binarized)
+        self.image_pub.publish(output)
+
+        
 
 
 if __name__ == '__main__':
