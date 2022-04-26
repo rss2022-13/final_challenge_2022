@@ -60,9 +60,9 @@ class LineFollower():
 
         dist_err = current_distance - self.parking_distance
         ang_err = target_angle
-        self.speed = self.dist_P*dist_err + self.dist_D*(dist_err - self.prev_dist_err)
-        if abs(self.speed) > 1:
-            self.speed = self.speed/abs(self.speed)
+        # self.speed = self.dist_P*dist_err + self.dist_D*(dist_err - self.prev_dist_err)
+        # if abs(self.speed) > 1:
+        #     self.speed = self.speed/abs(self.speed)
         self.steer_angle = self.ang_P*ang_err + self.ang_D*(ang_err - self.prev_ang_err)
 
         #TODO: change so that if youre far and angle is large, just go forward
