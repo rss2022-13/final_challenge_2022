@@ -91,7 +91,11 @@ class Controller:
         Listens to the lidar detector, and if walls are detected close to car we change our state
         to the inside car wash state and publish.
         '''
+<<<<<<< Updated upstream
         length = data.size
+=======
+        length = x.size
+>>>>>>> Stashed changes
         left = data.ranges[:length/3]
         right = data.ranges[2*length/3:]
         carwash_size = 0.1 ##change based on car wash size
