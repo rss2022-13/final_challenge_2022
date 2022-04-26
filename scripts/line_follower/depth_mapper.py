@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from urllib.parse import _NetlocResultMixinBytes
 import rospy
 import numpy as np
 
