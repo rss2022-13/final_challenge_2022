@@ -48,6 +48,8 @@ class DepthMapper():
 
         np_img = np.frombuffer(img_msg.data, dtype=np.uint8).reshape(img_msg.height, img_msg.width, -1)
         # average out the pixel values so that we avoid outliers
+        print np_img.shape
+        print self.mask.shape
         np_img = convolve2d(np_img, self.mask, mode="same")
         np_img = np_img.astype(int)
         if self.testing:
