@@ -13,11 +13,14 @@ class Controller:
     0: Line Following/ City Navigation
     1: Stop Sign Behavior
     2: Car Wash behavior
+    3: inside car wash behavior
     '''
     def __init__(self):
-        # DRIVE_TOPIC = rospy.get_param("~drive_topic")
-        # self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size = 10)
+        DRIVE_TOPIC = rospy.get_param("~drive_topic")
+        self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size = 10)
         self.state_pub = rospy.Publisher(rospy.get_param("~state_topic", "/state"), State, queue_size = 10)
+        self.line_pub = rospy.Publisher("/relative_line_px", ObjectLocationPixel, queue_size=10)
+        self.image_pub = rospy.Subscriber("/line_debug_img", Image, self.line_callback)
         self.sign_sub = rospy.Subscriber("/relative_sign", ObjectLocation, self.sign_callback)
         self.wash_sub = rospy.Subscriber(rospy.get_param("~car_wash_topic", "/car_wash"), CarWash, self.wash_callback)
         self.finish_sub = rospy.Subscriber("/finished", Finish, self.end_process_callback)
@@ -30,7 +33,35 @@ class Controller:
         # 3 Second cooldown when we change states
         self.cooldown = 3
 
-    
+    def line_callback(self, data):
+        if self.state == 3: #exiting carwash
+            rows, cols, channels  = img.shape
+            image_left = self.bridge.imgmsg_to_cv2(data, "bgr8")[:cols/2, :]
+        
+            image_right = self.bridge.imgmsg_to_cv2(data, "bgr8")[cols/2:, :]
+        
+            (x1_left,y1_left), (x2_left,y2_left) = cd_color_segmentation(image_left, None, "orange")
+            (x1_right,y1_right), (x2_right,y2_right) = cd_color_segmentation(image_right, None, "orange")
+
+            drive_cmd = AckermannDriveStamped()
+            
+            if y1_left < y1_right:    #positive slope line -> turn right -> only look at right image
+                drive_cmd.drive.steering_angle = -1.5
+            else:   #neg slope -> turn left -> look at left image
+                drive_cmd.drive.steering_angle = 1.5
+            self.drive_pub.publish(drive_cmd)
+            
+        
+        if self.state != 0:
+            out = State()
+            out.state = 0
+            self.prev_state = self.state
+            self.state = 0
+            self.state_pub.publish(out)
+        
+        
+        
+        
     def sign_callback(self,data):
         '''
         Listens to the sign locator, and if a sign is detected we transfer to the sign parking

@@ -40,7 +40,7 @@ METERS_PER_INCH = 0.0254
 class CarwashLocator:
     def __init__(self):
         self.carwash_px_sub = rospy.Subscriber("/relative_carwash_px", ObjectLocationPixel, self.carwash_detection_callback)
-        self.cone_pub = rospy.Publisher("/relative_carwash", ObjectLocation, queue_size=10)
+        self.carwash_pub = rospy.Publisher("/relative_carwash", ObjectLocation, queue_size=10)
         
         if not len(PTS_GROUND_PLANE) == len(PTS_IMAGE_PLANE):
             rospy.logerr("ERROR: PTS_GROUND_PLANE and PTS_IMAGE_PLANE should be of same length")
