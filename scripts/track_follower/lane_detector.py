@@ -48,8 +48,11 @@ class LaneDetector():
         pos = None
         if ret is not None:
             pos = LaneLocationPixels()
-            pos.u = ret[0]
-            pos.v = ret[1]
+            pos.v = ret[0]
+            #print "Num Columns: " + str(len(pos.v))
+            pos.u = ret[1]
+            #print "Num Rows: " + str(len(pos.u))
+
 
         if side == "LEFT" and pos is not None:
             self.left_lane_pub.publish(pos)
