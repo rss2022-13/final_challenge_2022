@@ -14,7 +14,6 @@ from ackermann_msgs.msg import AckermannDriveStamped
 
 class DepthMapper():
     def __init__(self):
-        DRIVE_TOPIC = rospy.get_param("~drive")
         self.depth_sub = rospy.Subscriber("/zed/zed_node/depth/depth_registered", Image, self.depth_callback)
         self.segment_sub = rospy.Subscriber("/binarized_image", Image, self.segment_callback)
         self.mouse = rospy.Subscriber("/zed/zed_node/depth/depth_registered_mouse_left", Point, self.mouse_callback)
