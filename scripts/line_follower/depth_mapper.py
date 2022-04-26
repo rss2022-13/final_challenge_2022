@@ -91,3 +91,10 @@ class DepthMapper():
         if poses:
             self.path_pub.publish(poses)
 
+if __name__ == '__main__':
+    try:
+        rospy.init_node('depth_mapper', anonymous=True)
+        DepthMapper()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass
