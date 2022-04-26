@@ -9,15 +9,16 @@ from scipy.signal import convolve2d
 
 from visualization_msgs.msg import Marker
 from final_challenge.msg import ObjectLocation, ObjectLocationPixel
-from geometry_msgs.msg import Pose, PoseArray
+from geometry_msgs.msg import Pose, PoseArray, Point
 from sensor_msgs.msg import Image
 from ackermann_msgs.msg import AckermannDriveStamped
 
 class DepthMapper():
     def __init__(self):
         DRIVE_TOPIC = rospy.get_param("~drive")
-        self.depth_sub = rospy.Subscriber("/zed/zed_node/depth/depth_processed", Image, self.depth_callback)
+        self.depth_sub = rospy.Subscriber("/zed/zed_node/depth/depth_registered", Image, self.depth_callback)
         self.segment_sub = rospy.Subscriber("/binarized_image", Image, self.segment_callback)
+        self.mouse = rospy.Subscriber("/zed/zed_node/depth/depth_registered_mouse_left", Point, self.mouse_callback)
         
         self.depth_map = None
         self.depth_set = False
@@ -31,6 +32,13 @@ class DepthMapper():
         # TODO: Set this experimentally
         self.pxToMetre = None
 
+        self.mouse_x = 0
+        self.mouse_y = 0
+        self.testing = True
+
+    def mouse_callback(self,msg):
+        self.mouse_x = msg.x
+        self.mouse_y = msg.y
 
     def depth_callback(self,img_msg):
         '''
@@ -39,10 +47,13 @@ class DepthMapper():
         Note that there is a possible timing problem between taking the color image and overlaying
         this image since they are activated by two different topics.
         '''
+
         np_img = np.frombuffer(img_msg.data, dtype=np.uint8).reshape(img_msg.height, img_msg.width, -1)
         # average out the pixel values so that we avoid outliers
         np_img = convolve2d(np_img, self.mask, mode="same")
         np_img = np_img.astype(int)
+        if self.testing:
+            print np_img[-self.mouse_y,self.mouse_x]
         # gray_img = np_img[:,:] #THIS IS PROBABLY INCORRECT
         self.depth_map = cv2.cvtColor(np_img, cv2.COLOR_GRAY2GRAY)
         # self.depth_map = np.frombuffer(img_msg.data, dtype=np.uint8).reshape(img_msg.height, img_msg.width)
