@@ -8,6 +8,8 @@ import cv2
 from cv_bridge import CvBridge
 from scipy.signal import convolve2d
 
+import utils
+
 from visualization_msgs.msg import Marker
 from final_challenge.msg import ObjectLocation, ObjectLocationPixel
 from geometry_msgs.msg import Pose, PoseArray, Point
@@ -33,6 +35,7 @@ class DepthMapper():
         self.path_pub = rospy.Publisher("/city_path", PoseArray, queue_size=5)
         self.debug_pub = rospy.Publisher("/depth_overlay", Image, queue_size=10)
 
+        self.trajectory = utils.LineTrajectory("/city_trajectory")
 
         self.cx = 375.945
         self.cy = 193.133
@@ -154,7 +157,10 @@ class DepthMapper():
         if poses:
             output = PoseArray()
             output.poses = poses
+            self.trajectory.fromPoseArray(output)
+            self.trajectory.publish_viz()
             self.path_pub.publish(output)
+
 
 if __name__ == '__main__':
     try:
