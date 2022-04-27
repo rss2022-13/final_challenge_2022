@@ -133,6 +133,8 @@ class DepthMapper():
         #         if path_depths.data[row][col] != 0:
         #             pose = Pose()
         #             pose.position.x,pose.position.y = self.convert_from_uvd(row,col,path_depths.data[row][col])
+        #             pose.position.x = max(min(pose.position.x, 5.0), 0.0)
+        #             pose.position.y = max(min(pose.position.y, 5.0), 0.0)
         #             poses.append(pose)
 
         # if poses:
