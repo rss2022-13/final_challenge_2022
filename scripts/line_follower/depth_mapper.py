@@ -157,6 +157,7 @@ class DepthMapper():
         if poses:
             output = PoseArray()
             output.poses = poses
+            self.trajectory.clear()
             self.trajectory.fromPoseArray(output)
             self.trajectory.publish_viz()
             self.path_pub.publish(output)

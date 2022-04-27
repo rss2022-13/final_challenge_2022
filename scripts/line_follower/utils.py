@@ -111,7 +111,7 @@ class LineTrajectory(object):
             self.points.append((p.position.x, p.position.y))
         self.update_distances()
         self.mark_dirty()
-        print "Loaded new trajectory with:", len(self.points), "points"
+        # print "Loaded new trajectory with:", len(self.points), "points"
 
     def toPoseArray(self):
         traj = PoseArray()
@@ -127,7 +127,7 @@ class LineTrajectory(object):
     def publish_start_point(self, duration=0.0, scale=0.1):
         should_publish = len(self.points) > 0
         if self.visualize and self.start_pub.get_num_connections() > 0:
-            print "Publishing start point"
+            # print "Publishing start point"
             marker = Marker()
             marker.header = self.make_header("/map")
             marker.ns = self.viz_namespace + "/trajectory"
@@ -157,7 +157,7 @@ class LineTrajectory(object):
     def publish_end_point(self, duration=0.0):
         should_publish = len(self.points) > 1
         if self.visualize and self.end_pub.get_num_connections() > 0:
-            print "Publishing end point"
+            # print "Publishing end point"
             marker = Marker()
             marker.header = self.make_header("/map")
             marker.ns = self.viz_namespace + "/trajectory"
