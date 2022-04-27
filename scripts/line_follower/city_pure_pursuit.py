@@ -199,9 +199,9 @@ class LineFollower():
             goal_point = np.append(goal_point, [0])
             
             # Find current position and orientation
-            cur_pos = np.array([msg.pose.pose.position.x, msg.pose.pose.position.y, 0])
+            cur_pos = np.array([0, 0, 0])
 
-            cur_theta = euler_from_quaternion([msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w])[2]
+            cur_theta = 0
             
             # Determine the perpendicular distance to the goal point from the car position
             orientation_vec = np.array([np.cos(cur_theta), np.sin(cur_theta), 0])
@@ -227,7 +227,7 @@ class LineFollower():
             
             ack_msg = AckermannDriveStamped()
             ack_msg.header.stamp = rospy.Time.now()
-            ack_msg.header.frame_id = msg.header.frame_id
+            ack_msg.header.frame_id = '/map'
             ack_msg.drive.steering_angle = steering_angle
             ack_msg.drive.speed = self.speed
 
