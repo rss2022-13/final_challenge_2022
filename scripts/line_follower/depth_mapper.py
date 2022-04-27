@@ -142,7 +142,7 @@ class DepthMapper():
         print type(path_depths)
         print type(path_depths[0])
 
-        for row in range(0,path_depths.shape[0],int(len(path_depths.data)/20)):
+        for row in range(0,path_depths.shape[0],int(path_depths.shape[0]/20)):
             for col in range(0,path_depths.shape[1],5):
                 if path_depths[row,col] != 0:
                     pose = Pose()
@@ -152,7 +152,9 @@ class DepthMapper():
                     poses.append(pose)
 
         if poses:
-            self.path_pub.publish(poses)
+            output = PoseArray()
+            output.poses = poses
+            self.path_pub.publish(output)
 
 if __name__ == '__main__':
     try:
