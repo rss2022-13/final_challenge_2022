@@ -120,7 +120,7 @@ class DepthMapper():
         # bgr_img = np_img[:,:-1] #THIS IS PROBABLY INCORRECT
         # segmented = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
         # segmented = np.frombuffer(img.data, dtype=np.uint8).reshape(img.height, img.width, -1)
-        if not self.depth_map:
+        if not self.depth_set:
             return
         segmented = self.bridge.imgmsg_to_cv2(img)
 
