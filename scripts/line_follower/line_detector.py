@@ -73,7 +73,7 @@ class LineDetector():
         # create a binary thresholded image
         ret,binarized = cv2.threshold(gray,50,255,cv2.THRESH_BINARY)
 
-        output = self.bridge.cv2_to_imgmsg(binarized)
+        output = self.bridge.cv2_to_imgmsg(gray)
         self.image_pub.publish(output)
 
         

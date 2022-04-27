@@ -19,9 +19,9 @@ class DepthMapper():
         # self.segment_sub = rospy.Subscriber("/binarized_image", Image, self.segment_callback)
         self.mouse = rospy.Subscriber("/zed/zed_node/depth/depth_registered_mouse_left", Point, self.mouse_callback)
 
-        self.segment_sub = message_filters.Subscriber("/binarized_image", Image)
-        self.depth_sub = message_filters.Subscriber("/zed/zed_node/depth/depth_registered_mouse_left", Image)
-        ts = message_filters.ApproximateTimeSynchronizer([self.segment_sub, self.depth_sub],10, 0.01)#, allow_headerless=True)
+        self.segment_sub = rospy.message_filters.Subscriber("/binarized_image", Image)
+        self.depth_sub = rospy.message_filters.Subscriber("/zed/zed_node/depth/depth_registered_mouse_left", Image)
+        ts = rospy.message_filters.ApproximateTimeSynchronizer([self.segment_sub, self.depth_sub],10, 0.01)#, allow_headerless=True)
         ts.registerCallback(self.overlay_callback)
         
         self.depth_map = None
