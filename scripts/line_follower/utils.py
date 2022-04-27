@@ -212,8 +212,8 @@ class LineTrajectory(object):
                 marker.action = marker.DELETE
             self.traj_pub.publish(marker)
             print('publishing traj')
-        elif self.traj_pub.get_num_connections() == 0:
-            print "Not publishing trajectory, no subscribers"
+        # elif self.traj_pub.get_num_connections() == 0:
+            # print "Not publishing trajectory, no subscribers"
 
     def publish_viz(self, duration=0):
         if not self.visualize:
