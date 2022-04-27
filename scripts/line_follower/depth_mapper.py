@@ -30,11 +30,11 @@ class DepthMapper():
         self.mask = np.ones((3,3))/9
 
         self.path_pub = rospy.Publisher("/city_path", PoseArray, queue_size=5)
+        self.debug_pub = rospy.Publisher("/depth_overlay", Image, queue_size=10)
 
         self.focalx = 338.658
         self.focaly = 338.658
         # TODO: Set this experimentally
-        self.pxToMetre = None
 
         self.mouse_x = 100
         self.mouse_y = 100
@@ -53,21 +53,23 @@ class DepthMapper():
         # depths = np.array(cv_image, dtype = np.dtype('f8'))
 
         # segmented = np.frombuffer(img.data, dtype=np.uint8).reshape(img.height, img.width, -1)
-        segmented = self.bridge.imgmsg_to_cv2(img, 'mono8')
+        segmented = self.bridge.imgmsg_to_cv2(img, "mono8")
 
         path_depths = cv2.bitwise_and(depths,depths, mask=segmented)
 
-        poses = []
+        self.debug_pub.publish(self.bridge.cv2_to_imgmsg(path_depths))
 
-        for row in range(0,len(path_depths.data),int(len(path_depths.data)/20)):
-            for col in range(0,len(path_depths.data[0]),5):
-                if path_depths.data[row][col] != 0:
-                    pose = Pose()
-                    pose.position.x,pose.position.y = self.convert_from_uvd(row,col,path_depths.data[row][col])
-                    poses.append(pose)
+        # poses = []
 
-        if poses:
-            self.path_pub.publish(poses)
+        # for row in range(0,len(path_depths.data),int(len(path_depths.data)/20)):
+        #     for col in range(0,len(path_depths.data[0]),5):
+        #         if path_depths.data[row][col] != 0:
+        #             pose = Pose()
+        #             pose.position.x,pose.position.y = self.convert_from_uvd(row,col,path_depths.data[row][col])
+        #             poses.append(pose)
+
+        # if poses:
+        #     self.path_pub.publish(poses)
 
     def depth_callback(self,img_msg):
         '''
@@ -99,7 +101,6 @@ class DepthMapper():
         # self.depth_set = True
 
     def convert_from_uvd(self, u, v, d):
-        # d *= self.pxToMetre
         x_over_z = (self.cx - u) / self.focalx
         y_over_z = (self.cy - v) / self.focaly
         z = d / np.sqrt(1. + x_over_z**2 + y_over_z**2)
