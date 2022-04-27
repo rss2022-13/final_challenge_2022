@@ -132,19 +132,19 @@ class DepthMapper():
 
         self.debug_pub.publish(self.bridge.cv2_to_imgmsg(path_depths))
 
-        # poses = []
+        poses = []
 
-        # for row in range(0,len(path_depths.data),int(len(path_depths.data)/20)):
-        #     for col in range(0,len(path_depths.data[0]),5):
-        #         if path_depths.data[row][col] != 0:
-        #             pose = Pose()
-        #             pose.position.x,pose.position.y = self.convert_from_uvd(row,col,path_depths.data[row][col])
-        #             pose.position.x = max(min(pose.position.x, 5.0), 0.0)
-        #             pose.position.y = max(min(pose.position.y, 5.0), 0.0)
-        #             poses.append(pose)
+        for row in range(0,len(path_depths.data),int(len(path_depths.data)/20)):
+            for col in range(0,len(path_depths.data[0]),5):
+                if path_depths.data[row][col] != 0:
+                    pose = Pose()
+                    pose.position.x,pose.position.y = self.convert_from_uvd(row,col,path_depths.data[row][col])
+                    pose.position.x = max(min(pose.position.x, 5.0), 0.0)
+                    pose.position.y = max(min(pose.position.y, 5.0), 0.0)
+                    poses.append(pose)
 
-        # if poses:
-        #     self.path_pub.publish(poses)
+        if poses:
+            self.path_pub.publish(poses)
 
 if __name__ == '__main__':
     try:
