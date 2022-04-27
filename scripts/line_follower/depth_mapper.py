@@ -33,6 +33,9 @@ class DepthMapper():
         self.path_pub = rospy.Publisher("/city_path", PoseArray, queue_size=5)
         self.debug_pub = rospy.Publisher("/depth_overlay", Image, queue_size=10)
 
+
+        self.cx = 375.945
+        self.cy = 193.133
         self.focalx = 338.658
         self.focaly = 338.658
         # TODO: Set this experimentally
