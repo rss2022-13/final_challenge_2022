@@ -16,14 +16,14 @@ from ackermann_msgs.msg import AckermannDriveStamped
 
 class DepthMapper():
     def __init__(self):
-        # self.depth_sub = rospy.Subscriber("/zed/zed_node/depth/depth_registered", Image, self.depth_callback)
-        # self.segment_sub = rospy.Subscriber("/binarized_image", Image, self.segment_callback)
+        self.depth_sub = rospy.Subscriber("/zed/zed_node/depth/depth_registered", Image, self.depth_callback)
+        self.segment_sub = rospy.Subscriber("/binarized_image", Image, self.segment_callback)
         self.mouse = rospy.Subscriber("/zed/zed_node/depth/depth_registered_mouse_left", Point, self.mouse_callback)
 
-        self.segment_sub = message_filters.Subscriber("/binarized_image", Image)
-        self.depth_sub = message_filters.Subscriber("/zed/zed_node/depth/depth_registered_mouse_left", Image)
-        ts = message_filters.ApproximateTimeSynchronizer([self.segment_sub, self.depth_sub],10, 0.01)#, allow_headerless=True)
-        ts.registerCallback(self.overlay_callback)
+        # self.segment_sub = message_filters.Subscriber("/binarized_image", Image)
+        # self.depth_sub = message_filters.Subscriber("/zed/zed_node/depth/depth_registered_mouse_left", Image)
+        # ts = message_filters.ApproximateTimeSynchronizer([self.segment_sub, self.depth_sub],10, 0.01)#, allow_headerless=True)
+        # ts.registerCallback(self.overlay_callback)
         
         self.depth_map = None
         self.depth_set = False
@@ -39,7 +39,7 @@ class DepthMapper():
 
         self.mouse_x = 100
         self.mouse_y = 100
-        self.testing = True
+        self.testing = False
 
         self.bridge = CvBridge()
 
@@ -49,6 +49,7 @@ class DepthMapper():
 
     def overlay_callback(self,img,depth_msg):
         depths = self.bridge.imgmsg_to_cv2(depth_msg, "32FC1")
+        print "running"
         # Convert the depth image to a Numpy array
         # Depths are in METERS
         # depths = np.array(cv_image, dtype = np.dtype('f8'))
@@ -87,19 +88,20 @@ class DepthMapper():
         # depths = cv2.cvtColor(np_img, cv2.COLOR_GRAY2GRAY)
         # print type(depths.data)
 
-        cv_image = self.bridge.imgmsg_to_cv2(img_msg, "32FC1")
+        self.depth_map = self.bridge.imgmsg_to_cv2(img_msg, "32FC1")
         # Convert the depth image to a Numpy array since most cv2 functions
         # require Numpy arrays.
         # Depths are in METERS
-        depths = np.array(cv_image, dtype = np.dtype('f8'))
+        depths = np.array(self.depth_map, dtype = np.dtype('f8'))
 
         # np_img = convolve2d(depths, self.mask, mode="same")
         # np_img = np_img.astype(int)
         if self.testing:
             print self.mouse_y,self.mouse_x
             print depths[self.mouse_y,self.mouse_x]
+        
         # self.depth_map = cv2.cvtColor(np_img, cv2.COLOR_GRAY2GRAY)
-        # self.depth_set = True
+        self.depth_set = True
 
     def convert_from_uvd(self, u, v, d):
         x_over_z = (self.cx - u) / self.focalx
@@ -117,21 +119,24 @@ class DepthMapper():
         # np_img = np.frombuffer(img.data, dtype=np.uint8).reshape(img.height, img.width, -1)
         # bgr_img = np_img[:,:-1] #THIS IS PROBABLY INCORRECT
         # segmented = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
-        segmented = np.frombuffer(img.data, dtype=np.uint8).reshape(img.height, img.width, -1)
+        # segmented = np.frombuffer(img.data, dtype=np.uint8).reshape(img.height, img.width, -1)
+        segmented = self.bridge.imgmsg_to_cv2(img, "mono8")
 
         path_depths = cv2.bitwise_and(self.depth_map,self.depth_map, mask=segmented)
 
-        poses = []
+        self.debug_pub.publish(self.bridge.cv2_to_imgmsg(path_depths))
 
-        for row in range(0,len(path_depths.data),int(len(path_depths.data)/20)):
-            for col in range(0,len(path_depths.data[0]),5):
-                if path_depths.data[row][col] != 0:
-                    pose = Pose()
-                    pose.position.x,pose.position.y = self.convert_from_uvd(row,col,path_depths.data[row][col])
-                    poses.append(pose)
+        # poses = []
 
-        if poses:
-            self.path_pub.publish(poses)
+        # for row in range(0,len(path_depths.data),int(len(path_depths.data)/20)):
+        #     for col in range(0,len(path_depths.data[0]),5):
+        #         if path_depths.data[row][col] != 0:
+        #             pose = Pose()
+        #             pose.position.x,pose.position.y = self.convert_from_uvd(row,col,path_depths.data[row][col])
+        #             poses.append(pose)
+
+        # if poses:
+        #     self.path_pub.publish(poses)
 
 if __name__ == '__main__':
     try:
