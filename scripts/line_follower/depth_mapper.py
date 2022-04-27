@@ -139,8 +139,8 @@ class DepthMapper():
 
         poses = []
 
-        print type(path_depths)
-        print type(path_depths[0])
+        #print type(path_depths)
+        #print type(path_depths[0])
 
         for row in range(0,path_depths.shape[0],int(path_depths.shape[0]/20)):
             for col in range(0,path_depths.shape[1],5):
