@@ -67,16 +67,16 @@ class LineFollower():
             closest: Tuple of the closest point, closest distance, and the index value of the trajectory 
                     segment (starting from 0)
         """
+        self.trajectory.clear()
+        self.trajectory.fromPoseArray(traj)
+
         if len(self.trajectory.points) == 0:
             return None
         # Current position based on odometry
         cur_pos = np.array([0, 0])
 
-        self.trajectory.clear()
-        self.trajectory.fromPoseArray(traj)
-
         # Trajectory points
-        traj_pts = np.array(self.trajectory)
+        traj_pts = np.array(self.trajectory.points)
 
         # Relative Trajectory Segment Vectors
         traj_deltas = np.diff(traj_pts, axis=0)
