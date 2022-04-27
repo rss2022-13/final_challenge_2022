@@ -122,6 +122,10 @@ class DepthMapper():
         # segmented = np.frombuffer(img.data, dtype=np.uint8).reshape(img.height, img.width, -1)
         segmented = self.bridge.imgmsg_to_cv2(img)
 
+        dim = (self.depth_map.shape[1], self.depth_map.shape[0])
+
+        segmented = cv2.resize(segmented, dim, interpolation=cv2.INTER_AREA)
+
         path_depths = cv2.bitwise_and(self.depth_map,self.depth_map, mask=segmented)
 
         self.debug_pub.publish(self.bridge.cv2_to_imgmsg(path_depths))
