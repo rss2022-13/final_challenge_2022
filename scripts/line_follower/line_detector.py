@@ -63,7 +63,7 @@ class LineDetector():
         dark = np.array([25,255,255])
 
         mask = cv2.inRange(hsv, light, dark)
-        isolated_color = cv2.bitwise_and(img,img, mask=mask)
+        isolated_color = cv2.bitwise_and(image,image, mask=mask)
 
         gray = cv2.cvtColor(isolated_color, cv2.COLOR_BGR2GRAY)
 
@@ -73,7 +73,7 @@ class LineDetector():
         # create a binary thresholded image
         ret,binarized = cv2.threshold(gray,50,255,cv2.THRESH_BINARY)
 
-        output = self.bridge.cv2_to_imgmsg(binarized)
+        output = self.bridge.cv2_to_imgmsg(gray)
         self.image_pub.publish(output)
 
         
