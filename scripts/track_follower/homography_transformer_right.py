@@ -10,8 +10,8 @@ from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from ackermann_msgs.msg import AckermannDriveStamped
-from visualization_msgs.msg import Marker, MarkerArray
-from visual_servoing.msg import LaneLocation, LaneLocationPixels
+from visualization_msgs.msg import Marker
+from final_challenge.msg import LaneLocation, LaneLocationPixels
 from geometry_msgs.msg import Point
 
 #The following collection of pixel locations and corresponding relative
@@ -46,7 +46,7 @@ class RightHomographyTransformer:
         self.right_lane_pub = rospy.Publisher("/relative_right_lane", LaneLocation, queue_size=10)
 
         self.mouse_sub = rospy.Subscriber("/zed/zed_node/right/image_rect_color_mouse_left", Point, self.mouse_callback)
-        self.marker_pub = rospy.Publisher("/right_lane_markers",MarkerArray, queue_size=1)
+        self.marker_pub = rospy.Publisher("/right_lane_markers",Marker, queue_size=1)
 
         if not len(PTS_GROUND_PLANE) == len(PTS_IMAGE_PLANE):
             rospy.logerr("ERROR: PTS_GROUND_PLANE and PTS_IMAGE_PLANE should be of same length")
@@ -76,9 +76,10 @@ class RightHomographyTransformer:
         x, y = self.transformUvToXy(u, v)
 
         #Publish relative xy position of object in real world
-        relative_xy_msg = ConeLocation()
+        relative_xy_msg = LaneLocation()
         relative_xy_msg.x_pos = x
         relative_xy_msg.y_pos = y
+        #rospy.loginfo(x)
 
         self.right_lane_pub.publish(relative_xy_msg)
         self.draw_marker(x,y,"/map")
@@ -97,23 +98,31 @@ class RightHomographyTransformer:
 
         Units are in meters.
         """
-        is_list = type(u) is list
-
+        length = 0
+        
+        try:
+            length = len(u)
+        except:
+            pass
+        is_list = length > 0
+        #rospy.loginfo("Length of u: %d", len(u))
+        #rospy.loginfo("Is this a list? %d", is_list)
         if is_list:
-            z = np.ones((len(u),))
-            z = z.tolist()
+            z = [1 for el in range(len(u))]
         else:
             z = 1
 
         homogeneous_point = np.array([u, v, z])
+        #rospy.loginfo(homogeneous_point[2])
         if not is_list:
             homogeneous_point = homogeneous_point.reshape((3,1))
 
         xy = np.dot(self.h, homogeneous_point)
         if is_list:
+            homogeneous_xy = np.zeros((2, len(u)))
             scaling_factor = np.divide(1.0, xy[2,:])
-            homogeneous_xy[0,:] = np.multiply(homogeneous_xy[0,:], scaling_factor)
-            homogeneous_xy[1,:] = np.multiply(homogeneous_xy[1,:], scaling_factor)
+            homogeneous_xy[0,:] = np.multiply(xy[0,:], scaling_factor)
+            homogeneous_xy[1,:] = np.multiply(xy[1,:], scaling_factor)
             x = homogeneous_xy[0,:]
             y = homogeneous_xy[1,:]
         else:
@@ -125,31 +134,36 @@ class RightHomographyTransformer:
 
     def draw_marker(self, lane_x, lane_y, message_frame):
         """
-        Publish a marker to represent the cone in rviz.
+        Publish a marker to represent the lane in rviz.
         (Call this function if you want)
         """
-        marker_arr = MarkerArray()
-        marker_arr.markers = []
+        marker = Marker()
+        marker.header.frame_id = message_frame
+        marker.type = marker.LINE_STRIP
+        marker.action = marker.ADD
+        marker.scale.x = .2
+        #marker.scale.y = .2
+        marker.scale.z = .2
+        marker.color.a = 1.0
+        marker.color.b = 1.0
+        marker.color.g = 0.5
+        marker.pose.orientation.w = 1.0
+        marker.pose.position.x = 0
+        marker.pose.position.y = 0
+        points = []
         for i in range(len(lane_x)):
-            marker = Marker()
-            marker.header.frame_id = message_frame
-            marker.type = marker.CYLINDER
-            marker.action = marker.ADD
-            marker.scale.x = .2
-            marker.scale.y = .2
-            marker.scale.z = .2
-            marker.color.a = 1.0
-            marker.color.r = 1.0
-            marker.color.g = .5
-            marker.pose.orientation.w = 1.0
-            marker.pose.position.x = lane_x[i]
-            marker.pose.position.y = lane_y[i]
-            marker_arr.markers.append(marker)
+            point = Point()
+            point.x = lane_x[i]
+            point.y = lane_y[i]
+            point.z = 0
 
-        self.marker_pub.publish(marker_arr)
+            points.append(point)
 
-
+        marker.points = points
+        
+        self.marker_pub.publish(marker)
+            
 if __name__ == "__main__":
-    rospy.init_node('homography_transformer')
-    homography_transformer = HomographyTransformer()
+    rospy.init_node('right_homography_transformer')
+    homography_transformer = RightHomographyTransformer()
     rospy.spin()
