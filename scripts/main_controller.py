@@ -13,7 +13,6 @@ class Controller:
     0: Line Following/ City Navigation
     1: Stop Sign Behavior
     2: Car Wash behavior
-    3: inside car wash behavior
     '''
     def __init__(self):
         DRIVE_TOPIC = rospy.get_param("~drive_topic")
@@ -24,8 +23,6 @@ class Controller:
         self.sign_sub = rospy.Subscriber("/relative_sign", ObjectLocation, self.sign_callback)
         self.wash_sub = rospy.Subscriber("/relative_carwash_px", ObjectLocationPixel, self.wash_callback)
         self.finish_sub = rospy.Subscriber("/finished", Finish, self.end_process_callback)
-        # navigate using lidar once in the carwash
-        self.inside_wash_sub = rospy.Subscriber(self.SCAN_TOPIC, LaserScan, self.inside_wash_callback)
         
         self.state = 0
         self.prev_state = 0
@@ -60,8 +57,6 @@ class Controller:
             self.state_pub.publish(out)
         
         
-        
-        
     def sign_callback(self,data):
         '''
         Listens to the sign locator, and if a sign is detected we transfer to the sign parking
@@ -84,23 +79,6 @@ class Controller:
             out.state = 2
             self.prev_state = self.state
             self.state = 2
-            self.state_pub.publish(out)
-
-    def inside_wash_callback(self,data):
-        '''
-        Listens to the lidar detector, and if walls are detected close to car we change our state
-        to the inside car wash state and publish.
-        '''
-        length = data.size
-        left = data.ranges[:length/3]
-        right = data.ranges[2*length/3:]
-        carwash_size = 0.5 ##change based on car wash size
-        
-        if self.state != 3 and np.average(left) <= carwash_size and np.average(right) <= carwash_size: #in carwash            
-            out = State()
-            out.state = 3
-            self.prev_state = self.state
-            self.state = 3
             self.state_pub.publish(out)
             
 
