@@ -165,8 +165,8 @@ def lane_color_segmentation(img, side):
     
     #print(img.shape)
     # For debugging issues with detecting track lines
-    if side == "LEFT":
-        #image_print(img)
-        image_print(gray)
+    if side == "RIGHT":
+        image_print(img)
+        #image_print(gray)
     
     return locations # will return a list of the non-zero pixel locations in the image later
