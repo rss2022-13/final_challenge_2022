@@ -12,7 +12,7 @@ import utils
 
 from visualization_msgs.msg import Marker
 from final_challenge.msg import ObjectLocation, ObjectLocationPixel
-from geometry_msgs.msg import Pose, PoseArray, Point
+from geometry_msgs.msg import Pose, PoseArray, Point, PoseWithCovarianceStamped
 from sensor_msgs.msg import Image
 from ackermann_msgs.msg import AckermannDriveStamped
 
@@ -21,6 +21,7 @@ class DepthMapper():
         self.depth_sub = rospy.Subscriber("/zed/zed_node/depth/depth_registered", Image, self.depth_callback)
         self.segment_sub = rospy.Subscriber("/binarized_image", Image, self.segment_callback)
         self.mouse = rospy.Subscriber("/zed/zed_node/depth/depth_registered_mouse_left", Point, self.mouse_callback)
+        self.start_sub = rospy.Subscriber("/initialpose", PoseWithCovarianceStamped, self.start_cb, queue_size=10)
 
         # self.segment_sub = message_filters.Subscriber("/binarized_image", Image)
         # self.depth_sub = message_filters.Subscriber("/zed/zed_node/depth/depth_registered_mouse_left", Image)
@@ -48,6 +49,21 @@ class DepthMapper():
         self.testing = False
 
         self.bridge = CvBridge()
+
+    def start_cb(self,pose):
+        # print "making spoofed points"
+        poses = []
+        for i in range(10):
+            p = Pose()
+            p.position.x,p.position.y = i+1,0 
+            poses.append(p)
+        out = PoseArray()
+        out.poses = poses
+        self.trajectory.clear()
+        self.trajectory.fromPoseArray(out)
+        self.trajectory.publish_viz()  
+        self.path_pub.publish(out)
+      
 
     def mouse_callback(self,msg):
         self.mouse_x = int(msg.x)
@@ -100,6 +116,8 @@ class DepthMapper():
         # Depths are in METERS
         depths = np.array(self.depth_map, dtype = np.dtype('f8'))
 
+        print np.min(depths)
+
         # np_img = convolve2d(depths, self.mask, mode="same")
         # np_img = np_img.astype(int)
         if self.testing:
@@ -109,7 +127,11 @@ class DepthMapper():
         # self.depth_map = cv2.cvtColor(np_img, cv2.COLOR_GRAY2GRAY)
         self.depth_set = True
 
+
     def convert_from_uvd(self, u, v, d):
+        '''
+        Can probably vectorize this whole thing to make it faster, then do a lin reg
+        '''
         x_over_z = (self.cx - u) / self.focalx
         y_over_z = (self.cy - v) / self.focaly
         z = d / np.sqrt(1. + x_over_z**2 + y_over_z**2)
@@ -121,6 +143,16 @@ class DepthMapper():
         '''
         This takes the color segmented image of the road and uses it as a mask to isolate
         the road in the depth map. This gives us the depths(positions) of each point in the line.
+
+        For speedup: 
+            Vectorize inputs so we calculate for whole image at once
+
+
+            0 1 2   0 0 0   4 4 5
+            0 1 2   1 1 1   4 5 5
+            0 1 2   2 2 2   4 4 4
+
+            do all matrix calculations then filter out 0 vals with a numpy func
         '''
         # np_img = np.frombuffer(img.data, dtype=np.uint8).reshape(img.height, img.width, -1)
         # bgr_img = np_img[:,:-1] #THIS IS PROBABLY INCORRECT
@@ -142,17 +174,25 @@ class DepthMapper():
 
         poses = []
 
+        u_vec,v_vec = np.meshgrid(np.arange(path_depths.shape[0]),np.arange(path_depths.shape[1]))
+
+        x_vals, y_vals = self.convert_from_uvd(u_vec, v_vec, path_depths)
+
+        nonzeros = np.nonzero(x_vals)
+
+        
+
         #print type(path_depths)
         #print type(path_depths[0])
 
-        for row in range(0,path_depths.shape[0],int(path_depths.shape[0]/20)):
-            for col in range(0,path_depths.shape[1],5):
-                if path_depths[row,col] != 0:
-                    pose = Pose()
-                    pose.position.x,pose.position.y = self.convert_from_uvd(row,col,path_depths[row,col])
-                    pose.position.x = max(min(pose.position.x, 5.0), 0.0)
-                    pose.position.y = max(min(pose.position.y, 5.0), 0.0)
-                    poses.append(pose)
+        # for row in range(0,path_depths.shape[0],int(path_depths.shape[0]/20)):
+        #     for col in range(0,path_depths.shape[1],5):
+        #         if path_depths[row,col] != 0:
+        #             pose = Pose()
+        #             pose.position.x,pose.position.y = self.convert_from_uvd(row,col,path_depths[row,col])
+        #             pose.position.x = max(min(pose.position.x, 5.0), 0.0)
+        #             pose.position.y = max(min(pose.position.y, 5.0), 0.0)
+        #             poses.append(pose)
 
         if poses:
             output = PoseArray()
