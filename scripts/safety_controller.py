@@ -21,7 +21,7 @@ class SafetyController:
         self.max_speed = 4.0
 
         self.desired_width = 2
-        self.breaking_distance = 0.4
+        self.breaking_distance = 0.2
         self.apply_safety = False
         
     def state_callback(self, state):
