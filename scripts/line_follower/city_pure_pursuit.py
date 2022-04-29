@@ -19,11 +19,10 @@ class LineFollower():
     the correct state.
     """
     def __init__(self):
-        rospy.Subscriber("/relative_line", ObjectLocation, self.relative_line_callback)
         rospy.Subscriber("/state", State, self.state_callback)
 
-        DRIVE_TOPIC = rospy.get_param("~drive_topic") # set in launch file; different for simulator vs racecar
-        self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
+        self.DRIVE_TOPIC = "/drive" # set in launch file; different for simulator vs racecar
+        # self.drive_pub = rospy.Publisher(self.DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
         self.error_pub = rospy.Publisher("/follower_error", FollowerError, queue_size=10)
         
         # For determining if we can publish driving commands (in the correct state)
@@ -39,9 +38,8 @@ class LineFollower():
         self.speed            = 1 # Tune later
         self.wheelbase_length = 0.325 # From model robot, change later
         self.trajectory  = utils.LineTrajectory("/followed_trajectory")
-        self.traj_sub = rospy.Subscriber("/trajectory/current", PoseArray, self.trajectory_callback, queue_size=1)
         self.drive_pub = rospy.Publisher("/vesc/ackermann_cmd_mux/input/navigation", AckermannDriveStamped, queue_size=1)
-        self.odom_sub = rospy.Subscriber(traj_topic, PoseArray, self.pursuit, queue_size=1)
+        self.traj_sub = rospy.Subscriber(traj_topic, PoseArray, self.pursuit, queue_size=1)
         '''
         What PP in city will do:
 
@@ -125,6 +123,7 @@ class LineFollower():
         cur_pos = np.array([0, 0])
         closest = self.find_closest_point(traj)
         if closest is None:
+            # print "closest is none"
             return None
 
         traj_pts = np.array(self.trajectory.points)
@@ -134,6 +133,7 @@ class LineFollower():
         closest_dist = closest[2]
 
         if closest_dist > self.lookahead:
+            # print "this would be hella far"
             return (closest_pt, False)
         else:
             # Find the first point that is farther than the lookahead distance
@@ -165,6 +165,7 @@ class LineFollower():
                     
                 #rospy.loginfo("This is the expected case")
                 #rospy.loginfo("t1 = %.2f, t2 = %.2f", t1, t2)
+                # print "expected"
 
                 return (in_pt + t*vec_v, True)
 
@@ -172,10 +173,12 @@ class LineFollower():
                 t = -b/(2*a)
                 #rospy.loginfo("This is not expected, but should still work")
                 #rospy.loginfo("t = %.2f", t)
+                # print "not Expected"
                 return (in_pt + t*vec_v, True)
 
             else:
                 #rospy.loginfo("wtf, negative b^2-4*a*c")
+                # print "not good!"
                 return None
             
             
@@ -183,6 +186,8 @@ class LineFollower():
     def pursuit(self, msg):
         """ Publishes drive instructions based on current PF pose information
         """
+
+        # print "following trajectory!"
 
         # Find the goal point
         goal = self.find_goal_point(msg)
@@ -230,11 +235,12 @@ class LineFollower():
             ack_msg.header.frame_id = '/map'
             ack_msg.drive.steering_angle = steering_angle
             ack_msg.drive.speed = self.speed
+            print "publishing to topic: " + str(self.DRIVE_TOPIC)
 
             self.drive_pub.publish(ack_msg)
 
         else:
-
+            # print "goal is none..."
             pass
 
 if __name__ == '__main__':
