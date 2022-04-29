@@ -12,6 +12,7 @@ class SafetyController:
         
         self.scan = rospy.Subscriber("/scan", LaserScan, self.scan_data)
         self.pub = rospy.Publisher("/vesc/low_level/ackermann_cmd_mux/input/safety", AckermannDriveStamped, queue_size=1)
+        rospy.Subscriber("/state", State, self.state_callback)
         
         self.ranges = None
         self.angle_min = -2.35
@@ -21,8 +22,12 @@ class SafetyController:
 
         self.desired_width = 2
         self.breaking_distance = 0.4
-        self.apply_safety = False   
+        self.apply_safety = False
         
+    def state_callback(self, state):
+        if state.state == 2:
+            self.apply_safety = False
+            
     def scan_data(self, data):
         self.ranges = data.ranges
         self.angle_min = data.angle_min
