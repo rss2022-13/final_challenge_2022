@@ -43,15 +43,12 @@ class SafetyController:
         for sample_dist in data.ranges[int(2.0*len(data.ranges)/5.0):int(3.0*len(data.ranges)/5.0)]:
             if sample_dist < self.breaking_distance:
                 count += 1
-                rospy.loginfo("Value small")
         if count >= 5:
-            rospy.loginfo("something Bad")
             self.apply_safety = True
         else:
-            rospy.loginfo("something_good")
             self.apply_safety = False
         if self.apply_safety:
-            rospy.loginfo("hello")
+            rospy.loginfo("SAFETY CONTROLLER APPLIED")
             msg = AckermannDriveStamped()
             msg.header.stamp = rospy.Time(0)
             msg.header.frame_id = "base_link"
@@ -61,6 +58,6 @@ class SafetyController:
             self.pub.publish(msg)
     
 if __name__ == "__main__":
-    rospy.init_node('safety_controller')
+    rospy.init_node("safety_controller")
     safety_controller = SafetyController()
     rospy.spin()
