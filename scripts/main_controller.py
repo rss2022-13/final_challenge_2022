@@ -22,7 +22,7 @@ class Controller:
         self.line_pub = rospy.Publisher("/relative_line_px", ObjectLocationPixel, queue_size=10)
         self.image_pub = rospy.Subscriber("/line_debug_img", Image, self.line_callback)
         self.sign_sub = rospy.Subscriber("/relative_sign", ObjectLocation, self.sign_callback)
-        self.wash_sub = rospy.Subscriber(rospy.get_param("~car_wash_topic", "/car_wash"), CarWash, self.wash_callback)
+        self.wash_sub = rospy.Subscriber("/relative_carwash_px", ObjectLocationPixel, self.wash_callback)
         self.finish_sub = rospy.Subscriber("/finished", Finish, self.end_process_callback)
         # navigate using lidar once in the carwash
         self.inside_wash_sub = rospy.Subscriber(self.SCAN_TOPIC, LaserScan, self.inside_wash_callback)
@@ -91,14 +91,10 @@ class Controller:
         Listens to the lidar detector, and if walls are detected close to car we change our state
         to the inside car wash state and publish.
         '''
-<<<<<<< Updated upstream
         length = data.size
-=======
-        length = x.size
->>>>>>> Stashed changes
         left = data.ranges[:length/3]
         right = data.ranges[2*length/3:]
-        carwash_size = 0.1 ##change based on car wash size
+        carwash_size = 0.5 ##change based on car wash size
         
         if self.state != 3 and np.average(left) <= carwash_size and np.average(right) <= carwash_size: #in carwash            
             out = State()
