@@ -110,24 +110,24 @@ def lane_color_segmentation(img, side):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     white_lower = np.array([0, 0, 160]) # These values are based off of my desk in my dorm
-    white_upper = np.array([179, 50, 255]) # Will test on track lines later to see if accurate
+    white_upper = np.array([179, 40, 255]) # Will test on track lines later to see if accurate
 
     color_mask = cv2.inRange(hsv, white_lower, white_upper)
     isolated_color = cv2.bitwise_and(img,img, mask=color_mask)
 
     blank = np.zeros(img.shape[:2], dtype = "uint8")
 
-    middle_gap = 2.0*img.shape[1]/8.0 # Gap between left and right rectangle masks
-    
-    start_height = 4.5/8.0
+    middle_gap = 1.0*img.shape[1]/8.0 # Gap between left and right rectangle masks
+    edge_gap = middle_gap/2;
+    start_height = 5/8.0
     end_height = 7.5/8.0
     # Top left and bottom right points for left lane line detection box
-    topLeft_L = (0, int(start_height*img.shape[0]))
+    topLeft_L = (int(edge_gap), int(start_height*img.shape[0]))
     botRight_L = (int((img.shape[1]-middle_gap)/2), int(end_height*img.shape[0]))
     
     # Top left and bottom right points for right lane line detection box
     topLeft_R = (int((img.shape[1]+middle_gap)/2), int(start_height*img.shape[0]))
-    botRight_R = (img.shape[1], int(end_height*img.shape[0]))
+    botRight_R = (int(img.shape[1]-edge_gap), int(end_height*img.shape[0]))
 
     # Draw the left rectangle onto an image
     rectangle_mask = None
@@ -144,8 +144,7 @@ def lane_color_segmentation(img, side):
 
     gray = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
     
-    kernel = np.ones((4,4), np.uint8)
-    kernel2 = np.ones((5,5), np.uint8)
+    kernel = np.ones((5,5), np.uint8)
     #gray = cv2.dilate(gray,kernel2, iterations=1) 
     gray = cv2.erode(gray, kernel, iterations=1)
     # Eroding works really well
