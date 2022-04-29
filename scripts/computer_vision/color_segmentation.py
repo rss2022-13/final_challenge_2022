@@ -20,7 +20,7 @@ def image_print(img):
 	Press any key to continue.
 	"""
 	cv2.imshow("image", img)
-	cv2.waitKey(3)
+	cv2.waitKey(1)
 	#cv2.destroyAllWindows()
 
 def cd_color_segmentation(img, template, color):
@@ -117,10 +117,10 @@ def lane_color_segmentation(img, side):
 
     blank = np.zeros(img.shape[:2], dtype = "uint8")
 
-    middle_gap = 4.0*img.shape[1]/8.0 # Gap between left and right rectangle masks
+    middle_gap = 2.0*img.shape[1]/8.0 # Gap between left and right rectangle masks
     
     start_height = 4.5/8.0
-    end_height = 6.0/8.0
+    end_height = 7.5/8.0
     # Top left and bottom right points for left lane line detection box
     topLeft_L = (0, int(start_height*img.shape[0]))
     botRight_L = (int((img.shape[1]-middle_gap)/2), int(end_height*img.shape[0]))
@@ -165,7 +165,8 @@ def lane_color_segmentation(img, side):
     
     #print(img.shape)
     # For debugging issues with detecting track lines
-    #image_print(img)
-    image_print(gray)
+    if side == "LEFT":
+        #image_print(img)
+        image_print(gray)
     
     return locations # will return a list of the non-zero pixel locations in the image later
