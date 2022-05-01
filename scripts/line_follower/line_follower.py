@@ -31,6 +31,7 @@ class LineFollower():
         self.relative_y = 0
         self.speed = 0.5
         self.angle = 0
+        self.steer_angle = 0
         self.dist_P = 1
         self.dist_D = 1.1
         self.ang_P = rospy.get_param("~ang_P", .45)
