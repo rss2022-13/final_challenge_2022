@@ -1,17 +1,27 @@
+#!/usr/bin/env python
+
 import cv2
 import rospy
 
 import numpy as np
 from sensor_msgs.msg import Image
+from std_msgs.msg import Float32MultiArray
 from final_challenge.msg import ObjectLocationPixel
-from detector import StopSignDetector
+#from detector import StopSignDetector
 
 class SignDetector:
     def __init__(self):
-        self.detector = StopSignDetector()
+        #self.detector = StopSignDetector()
         self.publisher = rospy.Publisher("/relative_sign_px", ObjectLocationPixel, queue_size=10)
-        self.subscriber = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.callback)
+        #self.subscriber = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.callback)
+        self.other = rospy.Subscriber("/stop_sign_bbox", Float32MultiArray, self.cb2)
     
+    def cb2(self,bBox):
+        out = ObjectLocationPixel()
+        out.u = (bBox.data[2] - bBox.data[0])/2
+        out.v = bBox.data[3]
+        self.publisher.publish(out)
+
     def callback(self, img_msg):
         # Process image without CV Bridge
         '''
@@ -24,8 +34,8 @@ class SignDetector:
         bgr_img = np_img[:,:,:-1]
         rgb_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
 
-        is_box, coords = self.detector.predict(rgb_img)
-
+       # is_box, coords = self.detector.predict(rgb_img)
+        return
         if not is_box:
             return
 

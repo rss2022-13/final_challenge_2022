@@ -14,25 +14,23 @@ class CarWashController():
     Can be used in the simulator and on the real robot.
     """
     # variables for inside carwash wall following
-    VELOCITY = rospy.get_param("carwash_velocity")
-    DESIRED_DISTANCE = rospy.get_param("carwash_desired_distance")
+    VELOCITY = rospy.get_param("carwash_velocity", 0.5)
+    DESIRED_DISTANCE = rospy.get_param("carwash_desired_distance", 0.5)
     integral = 0
     previous_error = 0
-    kp = rospy.get_param("wall_follower/kp")
-    kd = rospy.get_param("wall_follower/kd")
+    kp = rospy.get_param("wall_follower/kp",1)
+    kd = rospy.get_param("wall_follower/kd",0.2)
     N=1
     
     def __init__(self):
         rospy.Subscriber("/relative_carwash", ObjectLocation, self.relative_carwash_callback)
 
-        DRIVE_TOPIC = rospy.get_param("~drive_topic") # set in launch file; different for simulator vs racecar
+        DRIVE_TOPIC = rospy.get_param("~drive_topic", "/vesc/ackermann_cmd_mux/input/navigation") # set in launch file; different for simulator vs racecar
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
 
         rospy.Subscriber("/state", State, self.state_callback)
 
         self.can_publish = False
-
-        DRIVE_TOPIC = rospy.get_param("~drive_topic") # set in launch file; different for simulator vs racecar
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
         self.line_pub = rospy.Publisher("/wall", Marker, queue_size=1)
         
@@ -128,7 +126,7 @@ class CarWashController():
     if __name__ == '__main__':
         try:
             rospy.init_node('CarwashController', anonymous=True)
-            CarwashController()
+            CarWashController()
             rospy.spin()
         except rospy.ROSInterruptException:
             pass

@@ -27,7 +27,7 @@ class LineDetector():
         self.cone_pub = rospy.Publisher("/relative_line_px", ObjectLocationPixel, queue_size=10)
         self.debug_pub = rospy.Publisher("/line_debug_img", Image, queue_size=10)
         self.image_pub = rospy.Publisher("/binarized_image", Image, queue_size=10)
-        self.image_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.image_callback_depth)
+        self.image_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.image_callback)
         self.bridge = CvBridge() # Converts between ROS images and OpenCV Images
 
     def image_callback(self, image_msg):

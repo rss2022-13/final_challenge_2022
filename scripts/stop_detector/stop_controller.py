@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import queue
 import rospy
 import math
 import time
@@ -7,6 +8,8 @@ import time
 
 from ackermann_msgs.msg import AckermannDriveStamped
 from final_challenge.msg import ObjectLocation, FollowerError, State, Finish
+from std_msgs.msg import Float32MultiArray, Bool
+from sensor_msgs.msg import Image
 
 class StopController():
     """
@@ -16,14 +19,18 @@ class StopController():
     """
     def __init__(self):
         rospy.Subscriber("/relative_sign", ObjectLocation, self.relative_sign_callback)
+        #rospy.Subscriber("") make sure to add a subscriber from the state machine activates controller
+        self.stop_bbox_sub = rospy.Subscriber("/stop_sign_bbox", Float32MultiArray, self.stop_sign_detected)
+        #self.depth_sub = rospy.Subscriber("/zed/zed_node/depth/depth_registered", Image, self.depth_callback)
 
-        DRIVE_TOPIC = rospy.get_param("~drive_topic") # set in launch file; different for simulator vs racecar
+        DRIVE_TOPIC = rospy.get_param("~drive_topic", "vesc/ackermann_cmd_mux/input/navigation") # set in launch file; different for simulator vs racecar
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
         self.error_pub = rospy.Publisher("/stopping_error", FollowerError, queue_size=10)
         self.finish_pub = rospy.Publisher("/finished", Finish, queue_size=1)
+        self.stop_pub = rospy.Publisher("/stop", Bool, queue_size=1)
 
         self.state_sub = rospy.Subscriber("/state", State, self.state_callback)
-        self.can_publish = False
+        self.can_publish = True
 
         self.parking_distance = .8 # meters; try playing with this number!
         self.relative_x = 0
@@ -32,13 +39,56 @@ class StopController():
         self.angle = 0
         self.dist_P = 1
         self.dist_D = 1.1
-        self.ang_P = rospy.get_param("~ang_P")
-        self.ang_D = rospy.get_param("~ang_D")
+        self.ang_P = rospy.get_param("~ang_P", .45)
+        self.ang_D = rospy.get_param("~ang_D", .25)
         self.prev_dist_err = 0
         self.prev_ang_err = 0
 
-        self.stop_time = 1
+        self.x_stop = None
+        self.y_stop = None
+        self.max_stop = 0.8 #maximum distance away from the stop sign you can stop
+        self.stopped = False
+        self.stop_duration = 1.5
+        self.prev_stop_time = None
+        self.buffer_time =  4.0 #time buffer between stops, gives time to get away from current stop
         self.timer_set = False
+
+    def stop_sign_detected(self, msg):
+        #collect (xmin, ymin, xmax, ymax) from message to get bounding box
+        xmin, ymin, xmax, ymax = msg.data
+        #get the center point of the line through (xmin, ymin), (xmax, ymax)
+        slope = (ymax - ymin)/(xmax - xmin)
+        length = ((ymax - ymin)**2 + (xmax - xmin)**2)**(1/2)
+        phi = math.atan2(slope)
+        self.x_stop = xmin + length*0.5*math.cos(phi)
+        self.y_stop = ymin + length*0.5*math.sin(phi)
+    
+#    def depth_callback(self, img_msg):
+#        self.depth_map = self.bridge.imgmsg_to_cv2(img_msg, "32FC1")
+#        # Convert the depth image to a Numpy array since most cv2 functions
+#        # require Numpy arrays.
+#        # Depths are in METERS
+#        depths = np.array(self.depth_map, dtype = np.dtype('f8'))
+#        if not self.y_stop:
+#            stop_dist = depths[self.y_stop, self.x_stop]
+#            print("stop distance: ", stop_dist)
+#            if (stop_dist <= self.max_stop) and not self.stopped:
+#                msg_stop = Bool()
+#                msg_stop.data = True
+#                self.stop_pub.publish(msg_stop)
+    def go(self):
+        if self.prev_stop_time:
+            since_stop = rospy.Time.now() - self.prev_stop_time
+        else:
+            since_stop = self.buffer_time
+
+        if self.stopped and since_stop >= self.buffer_time:
+            rospy.sleep(self.stop_duration) #sleep for 1 sec
+            msg_stop = Bool()
+            msg_stop.data = False
+            self.stop_pub.publish(msg_stop)
+            self.stopped = False
+            self.prev_stop_time = rospy.Time.now()
 
     def state_callback(self,state):
         if state.state == 1:
@@ -55,10 +105,8 @@ class StopController():
         target_angle = math.atan2(self.relative_y, self.relative_x)
         current_distance = (self.relative_x**2 + self.relative_y**2)**(0.5) + .5
 
-        self.dist_P = rospy.get_param("~dist_P")
-        self.dist_D = rospy.get_param("~dist_D")
-        self.ang_P = rospy.get_param("~ang_P")
-        self.ang_D = rospy.get_param("~ang_D")
+        self.dist_P = rospy.get_param("~dist_P", 1.0)
+        self.dist_D = rospy.get_param("~dist_D", .2)
 
         dist_err = current_distance - self.parking_distance
         ang_err = target_angle
@@ -142,7 +190,7 @@ class StopController():
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('ParkingController', anonymous=True)
+        rospy.init_node('stop_controllerarkingController', anonymous=True)
         StopController()
         rospy.spin()
     except rospy.ROSInterruptException:

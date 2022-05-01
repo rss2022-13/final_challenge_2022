@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import rospy
 import numpy as np
 from final_challenge_2022.msg import ObjectLocation, State, CarWash, Finish

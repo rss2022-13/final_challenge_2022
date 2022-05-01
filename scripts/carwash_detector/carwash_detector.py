@@ -2,15 +2,15 @@
 
 import numpy as np
 import rospy
-
+import sys
+sys.path.append('/home/racecar/racecar_ws/src/final_challenge_2022/scripts/computer_vision')
 from cv_bridge import CvBridge
 
 from sensor_msgs.msg import Image
 from final_challenge.msg import ObjectLocationPixel
 
 # import your color segmentation algorithm; call this function in ros_image_callback!
-from computer_vision.color_segmentation import cd_color_segmentation
-
+from color_segmentation import cd_color_segmentation
 
 class CarwashDetector():
     """
@@ -39,6 +39,7 @@ class CarwashDetector():
         # YOUR CODE HERE
         # detect the cone and publish its
         # pixel location in the image.
+        rospy.loginfo("test")
         (x1,y1), (x2,y2) = cd_color_segmentation(image, None, "blue")
         
         pos = ObjectLocationPixel()

@@ -19,7 +19,7 @@ class LineFollower():
         rospy.Subscriber("/relative_line", ObjectLocation, self.relative_line_callback)
         rospy.Subscriber("/state", State, self.state_callback)
 
-        DRIVE_TOPIC = rospy.get_param("~drive_topic") # set in launch file; different for simulator vs racecar
+        DRIVE_TOPIC = rospy.get_param("~drive_topic", "vesc/ackermann_cmd_mux/input/navigation") # set in launch file; different for simulator vs racecar
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
         self.error_pub = rospy.Publisher("/follower_error", FollowerError, queue_size=10)
         
@@ -33,8 +33,8 @@ class LineFollower():
         self.angle = 0
         self.dist_P = 1
         self.dist_D = 1.1
-        self.ang_P = rospy.get_param("~ang_P")
-        self.ang_D = rospy.get_param("~ang_D")
+        self.ang_P = rospy.get_param("~ang_P", .45)
+        self.ang_D = rospy.get_param("~ang_D", .25)
         self.prev_dist_err = 0
         self.prev_ang_err = 0
 
@@ -63,13 +63,20 @@ class LineFollower():
         # self.speed = self.dist_P*dist_err + self.dist_D*(dist_err - self.prev_dist_err)
         # if abs(self.speed) > 1:
         #     self.speed = self.speed/abs(self.speed)
-        self.steer_angle = self.ang_P*ang_err + self.ang_D*(ang_err - self.prev_ang_err)
+        #self.steer_angle = self.ang_P*ang_err + self.ang_D*(ang_err - self.prev_ang_err)
 
         #TODO: change so that if youre far and angle is large, just go forward
         #or increase the threshold for a large angle
-        if abs(ang_err) >= math.pi/4: #prioritize fixing large angle error, back up and rotate
+        #case for when we're still searching for the line, just stay at the same angle and move back
+        if abs(ang_err) >= math.pi/4 and abs(self.prev_ang_err) >= math.pi/4: 
             self.speed = -0.5
-            self.steer_angle = -abs(ang_err)/ang_err * abs(ang_err)
+        elif abs(ang_err) >= math.pi/4:
+            #case where we just now lost track of the line
+            self.speed = -0.5
+            self.steer_angle = -self.steer_angle
+        else:
+            self.speed = 0.5
+            self.steer_angle = self.ang_p*ang_err + self.ang_D*(ang_err - self.prev_ang_err)
 
         '''
         #stop if close enough
@@ -114,6 +121,7 @@ class LineFollower():
         drive_cmd.drive.speed = self.speed
         drive_cmd.drive.steering_angle = self.steer_angle
         if self.can_publish:
+            rospy.loginfo("line follower publishing")   
             self.drive_pub.publish(drive_cmd)
             self.error_publisher()
 

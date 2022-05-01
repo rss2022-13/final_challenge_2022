@@ -44,11 +44,11 @@ METERS_PER_INCH = 0.0254
 
 class LeftHomographyTransformer:
     def __init__(self):
-        self.left_lane_px_sub = rospy.Subscriber("/relative_left_lane_px", LaneLocationPixels, self.lane_detection_callback)
-        self.left_lane_pub = rospy.Publisher("/relative_left_lane", LaneLocation, queue_size=10)
+        self.right_lane_px_sub = rospy.Subscriber("/relative_right_lane_px", LaneLocationPixels, self.lane_detection_callback)
+        self.right_lane_pub = rospy.Publisher("/relative_right_lane", LaneLocation, queue_size=10)
 
         self.mouse_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color_mouse_left", Point, self.mouse_callback)
-        self.marker_pub = rospy.Publisher("/left_lane_markers",Marker, queue_size=1)
+        self.marker_pub = rospy.Publisher("/right_lane_markers",Marker, queue_size=10)
 
         if not len(PTS_GROUND_PLANE) == len(PTS_IMAGE_PLANE):
             rospy.logerr("ERROR: PTS_GROUND_PLANE and PTS_IMAGE_PLANE should be of same length")
@@ -82,7 +82,7 @@ class LeftHomographyTransformer:
         relative_xy_msg.x_pos = x
         relative_xy_msg.y_pos = y
 
-        self.left_lane_pub.publish(relative_xy_msg)
+        self.right_lane_pub.publish(relative_xy_msg)
         self.draw_marker(x,y,"/map")
 
 
@@ -99,19 +99,13 @@ class LeftHomographyTransformer:
 
         Units are in meters.
         """
-        length = 0
         
-        try:
-            length = len(u)
-        except:
-            pass
-        is_list = length > 0
+        is_list = True
         #rospy.loginfo("Length of u: %d", len(u))
         #rospy.loginfo("Is this a list? %d", is_list)
+        #rospy.loginfo(is_list)
         if is_list:
             z = [1 for el in range(len(u))]
-        else:
-            z = 1
 
         homogeneous_point = np.array([u, v, z])
         if not is_list:
@@ -125,7 +119,7 @@ class LeftHomographyTransformer:
             homogeneous_xy[1,:] = np.multiply(xy[1,:], scaling_factor)
             x = homogeneous_xy[0,:]
             y = homogeneous_xy[1,:]
-            rospy.loginfo(x)
+            #rospy.loginfo(x)
         else:
             scaling_factor = 1.0 / xy[2, 0]
             homogeneous_xy = xy * scaling_factor

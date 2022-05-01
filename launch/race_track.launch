@@ -1,0 +1,11 @@
+<launch>
+	<node pkg="final_challenge" type="track_follower.py" name="Track_Follower" output="screen">
+	</node>
+	<node pkg="final_challenge" type="lane_detector.py" name="Lane_Detector" output="screen">
+	</node>
+        <node pkg="final_challenge" type="homography_transformer_left.py" name="Left_Homography" output="screen">
+	</node>
+        <node pkg="final_challenge" type="homography_transformer_right.py" name="Right_Homography" output="screen">
+	</node>
+</launch>
+

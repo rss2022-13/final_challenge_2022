@@ -21,20 +21,20 @@ from geometry_msgs.msg import Point
 # see README.md for coordinate frame description
 
 ######################################################
-PTS_IMAGE_PLANE = [[277, 231], #325,257
-                   [420,211], #443,257
-                   [181,181], #428,238
-                   [220,220]] # 334,238
+PTS_IMAGE_PLANE = [[483, 255], #325,257
+                   [348, 258], #443,257
+                   [357,235], #428,238
+                   [452,231]]# 334,238
 ######################################################
 
 # PTS_GROUND_PLANE units are in inches
 # car looks along positive x axis with positive y axis to left
 
 ######################################################
-PTS_GROUND_PLANE = [[34.5, 8.5],
-                    [43.0, -11.5],
-                    [101.0, -45.0],
-                    [46.0, 27.5]]
+PTS_GROUND_PLANE = [[24.0, -12.0],
+                    [24.0, 0.0],
+                    [36.0, 0.0],
+                    [36.0, -12.0]]
 ######################################################
 
 METERS_PER_INCH = 0.0254
@@ -42,11 +42,11 @@ METERS_PER_INCH = 0.0254
 
 class RightHomographyTransformer:
     def __init__(self):
-        self.right_lane_px_sub = rospy.Subscriber("/relative_right_lane_px", LaneLocationPixels, self.lane_detection_callback)
-        self.right_lane_pub = rospy.Publisher("/relative_right_lane", LaneLocation, queue_size=10)
+        self.left_lane_px_sub = rospy.Subscriber("/relative_left_lane_px", LaneLocationPixels, self.lane_detection_callback)
+        self.left_lane_pub = rospy.Publisher("/relative_left_lane", LaneLocation, queue_size=10)
 
         self.mouse_sub = rospy.Subscriber("/zed/zed_node/right/image_rect_color_mouse_left", Point, self.mouse_callback)
-        self.marker_pub = rospy.Publisher("/right_lane_markers",Marker, queue_size=1)
+        self.marker_pub = rospy.Publisher("/left_lane_markers",Marker, queue_size=1)
 
         if not len(PTS_GROUND_PLANE) == len(PTS_IMAGE_PLANE):
             rospy.logerr("ERROR: PTS_GROUND_PLANE and PTS_IMAGE_PLANE should be of same length")
@@ -81,7 +81,7 @@ class RightHomographyTransformer:
         relative_xy_msg.y_pos = y
         #rospy.loginfo(x)
 
-        self.right_lane_pub.publish(relative_xy_msg)
+        self.left_lane_pub.publish(relative_xy_msg)
         self.draw_marker(x,y,"/map")
 
 
@@ -98,13 +98,7 @@ class RightHomographyTransformer:
 
         Units are in meters.
         """
-        length = 0
-        
-        try:
-            length = len(u)
-        except:
-            pass
-        is_list = length > 0
+        is_list = True
         #rospy.loginfo("Length of u: %d", len(u))
         #rospy.loginfo("Is this a list? %d", is_list)
         if is_list:
@@ -143,7 +137,7 @@ class RightHomographyTransformer:
         marker.action = marker.ADD
         marker.scale.x = .2
         #marker.scale.y = .2
-        marker.scale.z = .2
+        #marker.scale.z = .2
         marker.color.a = 1.0
         marker.color.b = 1.0
         marker.color.g = 0.5
@@ -165,5 +159,5 @@ class RightHomographyTransformer:
             
 if __name__ == "__main__":
     rospy.init_node('right_homography_transformer')
-    homography_transformer = RightHomographyTransformer()
+    right_homography_transformer = RightHomographyTransformer()
     rospy.spin()

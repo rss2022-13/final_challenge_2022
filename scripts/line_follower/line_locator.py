@@ -76,7 +76,7 @@ class LineLocator:
         relative_xy_msg = ObjectLocation()
         relative_xy_msg.x = x
         relative_xy_msg.y = y
-
+        rospy.loginfo("line detection callback")
         self.cone_pub.publish(relative_xy_msg)
         self.draw_marker(x,y,"/map")
 

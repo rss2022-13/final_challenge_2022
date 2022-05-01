@@ -55,9 +55,9 @@ class LaneDetector():
 
 
         if side == "LEFT" and pos is not None:
-            self.left_lane_pub.publish(pos)
-        elif side == "RIGHT" and pos is not None:
             self.right_lane_pub.publish(pos)
+        elif side == "RIGHT" and pos is not None:
+            self.left_lane_pub.publish(pos)
 
         #################################
         # debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
@@ -66,10 +66,12 @@ class LaneDetector():
     def right_image_callback(self, image_msg):
         side = "RIGHT"
         self.image_callback(image_msg, side)
+        #rospy.loginfo("Right called")
 
     def left_image_callback(self, image_msg):
         side = "LEFT"
         self.image_callback(image_msg, side)
+        #rospy.loginfo("Left called")
 
 
 

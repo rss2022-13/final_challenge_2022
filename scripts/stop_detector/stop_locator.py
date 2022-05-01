@@ -145,6 +145,6 @@ class SignLocator:
 
 
 if __name__ == "__main__":
-    rospy.init_node('line_locator')
+    rospy.init_node('stop_locator_locator')
     homography_transformer = SignLocator()
     rospy.spin()

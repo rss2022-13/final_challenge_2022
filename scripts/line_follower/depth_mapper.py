@@ -116,8 +116,6 @@ class DepthMapper():
         # Depths are in METERS
         depths = np.array(self.depth_map, dtype = np.dtype('f8'))
 
-        print np.min(depths)
-
         # np_img = convolve2d(depths, self.mask, mode="same")
         # np_img = np_img.astype(int)
         if self.testing:
@@ -168,17 +166,46 @@ class DepthMapper():
 
         path_depths = cv2.bitwise_and(self.depth_map,self.depth_map, mask=segmented)
 
+        box = np.zeros(path_depths.shape[:2], dtype="uint8")
+        topLeft = (0,path_depths.shape[0]/4)
+        botRight = (path_depths.shape[1], 7*path_depths.shape[0]/8)
+        rectMask = cv2.rectangle(box, topLeft, botRight, (255,255,255),-1)
+
+        path_depths = cv2.bitwise_and(path_depths, path_depths, mask=box)
+
         self.debug_pub.publish(self.bridge.cv2_to_imgmsg(path_depths))
 
         path_depths = np.array(path_depths, dtype = np.dtype('f8'))
 
+        #print "max path depth"
+        #print np.max(path_depths)
+        #print np.min(path_depths)
+
         poses = []
 
-        u_vec,v_vec = np.meshgrid(np.arange(path_depths.shape[0]),np.arange(path_depths.shape[1]))
+        u_vec,v_vec = np.meshgrid(np.arange(path_depths.shape[1]),np.arange(path_depths.shape[0]))
 
-        x_vals, y_vals = self.convert_from_uvd(u_vec, v_vec, path_depths)
+        x_vals, y_vals = self.convert_from_uvd(v_vec, u_vec, path_depths)
 
-        nonzeros = np.nonzero(x_vals)
+        #print "x"
+        #print x_vals.shape
+        #print "y"
+        #print y_vals.shape
+
+        x_vals[np.where(np.isnan(x_vals))] = -1
+        y_vals[np.where(np.isnan(y_vals))] = -1
+        nonzeros = np.where(x_vals>0 & np.isfinite(x_vals) & np.isfinite(y_vals))
+        #print np.max(x_vals)
+
+        #print "smallest"
+
+        #print np.min(x_vals)
+
+        #print "size of nonzero vec" + str(np.array(nonzeros).shape)
+
+        coeffs = np.polynomial.polynomial.polyfit(x_vals[nonzeros],y_vals[nonzeros],1)
+
+        print coeffs
 
         
 
