@@ -24,7 +24,7 @@ class LineFollower():
         self.error_pub = rospy.Publisher("/follower_error", FollowerError, queue_size=10)
         
         # For determining if we can publish driving commands (in the correct state)
-        self.can_publish = False
+        self.can_publish = True
 
         self.parking_distance = .5 # meters; try playing with this number!
         self.relative_x = 0
