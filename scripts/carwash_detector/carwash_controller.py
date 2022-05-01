@@ -5,7 +5,8 @@ import math
 
 
 from ackermann_msgs.msg import AckermannDriveStamped
-from final_challenge.msg import ObjectLocation, State
+from final_challenge.msg import ObjectLocation, State, Finish
+from visualization_msgs.msg import Marker
 
 class CarWashController():
     """
@@ -83,10 +84,10 @@ class CarWashController():
             self.error_publisher()
 
 
-    if __name__ == '__main__':
-        try:
-            rospy.init_node('CarwashController', anonymous=True)
-            carwashcontroller = CarWashController()
-            rospy.spin()
-        except rospy.ROSInterruptException:
-            pass
+if __name__ == '__main__':
+    try:
+        rospy.init_node('CarwashController', anonymous=True)
+        carwashcontroller = CarWashController()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass
