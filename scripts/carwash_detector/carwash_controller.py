@@ -29,12 +29,16 @@ class CarWashController():
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
 
         rospy.Subscriber("/state", State, self.state_callback)
+        rospy.Subscriber("/relative_line", ObjectLocation, self.line_callback)
 
         self.can_publish = False
+        self.finish_pub = rospy.Publisher("/finished", Finish, queue_size=1)
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
-        #self.line_pub = rospy.Publisher("/wall", Marker, queue_size=1)
+        self.line_pub = rospy.Publisher("/wall", Marker, queue_size=1)
         
-
+    def line_callback(self, msg):
+        self.finish_pub.pub("exited carwash")
+        
     def state_callback(self,state):
         if state.state == 2:
             if self.carwash is not None: #driving to carwash
@@ -79,10 +83,10 @@ class CarWashController():
             self.error_publisher()
 
 
-if __name__ == '__main__':
-    try:
-        rospy.init_node('CarwashController', anonymous=True)
-        carwashcontroller = CarWashController()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        pass
+    if __name__ == '__main__':
+        try:
+            rospy.init_node('CarwashController', anonymous=True)
+            carwashcontroller = CarWashController()
+            rospy.spin()
+        except rospy.ROSInterruptException:
+            pass
