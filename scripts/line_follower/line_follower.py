@@ -53,11 +53,6 @@ class LineFollower():
         target_angle = math.atan2(self.relative_y, self.relative_x)
         current_distance = (self.relative_x**2 + self.relative_y**2)**(0.5) + .5
 
-        self.dist_P = rospy.get_param("~dist_P")
-        self.dist_D = rospy.get_param("~dist_D")
-        self.ang_P = rospy.get_param("~ang_P")
-        self.ang_D = rospy.get_param("~ang_D")
-
         dist_err = current_distance - self.parking_distance
         ang_err = target_angle
         # self.speed = self.dist_P*dist_err + self.dist_D*(dist_err - self.prev_dist_err)
@@ -124,6 +119,8 @@ class LineFollower():
             rospy.loginfo("line follower publishing")   
             self.drive_pub.publish(drive_cmd)
             self.error_publisher()
+        else:
+            print "cannot publish line follower"
 
     def error_publisher(self):
         """
