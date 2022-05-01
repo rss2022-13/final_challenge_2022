@@ -116,11 +116,11 @@ class LineFollower():
         drive_cmd.drive.speed = self.speed
         drive_cmd.drive.steering_angle = self.steer_angle
         if self.can_publish:
-            rospy.loginfo("line follower publishing")   
+            # rospy.loginfo("line follower publishing")   
             self.drive_pub.publish(drive_cmd)
             self.error_publisher()
         else:
-            print "cannot publish line follower"
+            # print "cannot publish line follower"
 
     def error_publisher(self):
         """
