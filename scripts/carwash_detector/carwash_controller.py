@@ -49,6 +49,7 @@ class CarWashController():
             self.can_publish = False
 
     def relative_carwash_callback(self, msg):
+        rospy.loginfo("car wash detector publishing")
         #relative x and y wrt frame of racecar
         self.relative_x = msg.x
         self.relative_y = msg.y

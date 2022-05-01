@@ -15,16 +15,16 @@ import pdb
 ###############################################################
 
 def image_print(img):
-	"""
+    """
 	Helper function to print out images, for debugging. Pass them in as a list.
 	Press any key to continue.
-	"""
-	cv2.imshow("image", img)
-	cv2.waitKey(1)
-	#cv2.destroyAllWindows()
+    """
+    cv2.imshow("image", img)
+    cv2.waitKey(1)
+    #cv2.destroyAllWindows()
 
 def cd_color_segmentation(img, template, color):
-	"""
+    """
 	Implement the cone detection using color segmentation algorithm
 	Input:
 		img: np.3darray; the input image with a cone to be detected. BGR.
@@ -33,15 +33,13 @@ def cd_color_segmentation(img, template, color):
 	Return:
 		bbox: ((x1, y1), (x2, y2)); the bounding box of the cone, unit in px
 				(x1, y1) is the top left of the bbox and (x2, y2) is the bottom right of the bbox
-	"""
-	#bad: 15,17,14,11,5
-	#mid:9,6,2
-	bounding_box = ((0,0),(0,0))
+    """
+    bounding_box = ((0,0),(0,0))
 
-	hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-        #colors in hsv
-	if color == "orange":
+    #colors in hsv
+    if color == "orange":
         light = np.array([3, 140, 140])
         dark = np.array([25,255,255])
     else: #blue
