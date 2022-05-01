@@ -2,7 +2,7 @@
 
 import rospy
 import numpy as np
-from final_challenge_2022.msg import ObjectLocation, ObjectLocationPixel, State, CarWash, Finish
+from final_challenge.msg import ObjectLocation, ObjectLocationPixel, State, CarWash, Finish
 from ackermann_msgs.msg import AckermannDriveStamped
 from computer_vision.color_segmentation import cd_color_segmentation
 
@@ -17,11 +17,11 @@ class Controller:
     2: Car Wash behavior
     '''
     def __init__(self):
-        DRIVE_TOPIC = rospy.get_param("~drive_topic")
-        self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size = 10)
+        # DRIVE_TOPIC = rospy.get_param("~drive_topic")
+        # self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size = 10)
         self.state_pub = rospy.Publisher(rospy.get_param("~state_topic", "/state"), State, queue_size = 10)
         # self.image_pub = rospy.Subscriber("/line_debug_img", Image, self.line_callback)
-        self.line_sub = rospy.Subscriber("relative_line", ObjectLocation, self.line_callback)
+        self.line_sub = rospy.Subscriber("/relative_line", ObjectLocation, self.line_callback)
         self.sign_sub = rospy.Subscriber("/relative_sign", ObjectLocation, self.sign_callback)
         self.wash_sub = rospy.Subscriber("/relative_carwash_px", ObjectLocationPixel, self.wash_callback)
         self.finish_sub = rospy.Subscriber("/finished", Finish, self.end_process_callback)
