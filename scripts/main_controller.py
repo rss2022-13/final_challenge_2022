@@ -2,7 +2,7 @@
 
 import rospy
 import numpy as np
-from final_challenge_2022.msg import ObjectLocation, ObjectLocationPixel, State, CarWash, Finish
+from final_challenge.msg import ObjectLocation, ObjectLocationPixel, State, CarWash, Finish
 from ackermann_msgs.msg import AckermannDriveStamped
 from computer_vision.color_segmentation import cd_color_segmentation
 
