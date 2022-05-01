@@ -37,8 +37,8 @@ class StopController():
         self.relative_y = 0
         self.speed = 0.5
         self.angle = 0
-        self.dist_P = 1
-        self.dist_D = 1.1
+        self.dist_P = rospy.get_param("~dist_P", 1.0)
+        self.dist_D = rospy.get_param("~dist_D", .2)
         self.ang_P = rospy.get_param("~ang_P", .45)
         self.ang_D = rospy.get_param("~ang_D", .25)
         self.prev_dist_err = 0
@@ -104,9 +104,6 @@ class StopController():
 
         target_angle = math.atan2(self.relative_y, self.relative_x)
         current_distance = (self.relative_x**2 + self.relative_y**2)**(0.5) + .5
-
-        self.dist_P = rospy.get_param("~dist_P", 1.0)
-        self.dist_D = rospy.get_param("~dist_D", .2)
 
         dist_err = current_distance - self.parking_distance
         ang_err = target_angle

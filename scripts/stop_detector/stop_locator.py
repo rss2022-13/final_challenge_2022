@@ -88,6 +88,7 @@ class SignLocator:
         relative_xy_msg.y = y
 
         if self.can_pub:
+            print "publishing stop sign location"
             self.cone_pub.publish(relative_xy_msg)
             self.draw_marker(x, y, "/map")
 
@@ -145,6 +146,6 @@ class SignLocator:
 
 
 if __name__ == "__main__":
-    rospy.init_node('stop_locator_locator')
+    rospy.init_node('stop_locator')
     homography_transformer = SignLocator()
     rospy.spin()
