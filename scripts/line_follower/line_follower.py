@@ -76,7 +76,7 @@ class LineFollower():
             self.steer_angle = -self.steer_angle
         else:
             self.speed = 0.5
-            self.steer_angle = self.ang_p*ang_err + self.ang_D*(ang_err - self.prev_ang_err)
+            self.steer_angle = self.ang_P*ang_err + self.ang_D*(ang_err - self.prev_ang_err)
 
         '''
         #stop if close enough
