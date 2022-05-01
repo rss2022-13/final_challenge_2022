@@ -39,7 +39,7 @@ class CarwashDetector():
         # YOUR CODE HERE
         # detect the cone and publish its
         # pixel location in the image.
-        rospy.loginfo("test")
+        rospy.loginfo("here")
         (x1,y1), (x2,y2) = cd_color_segmentation(image, None, "blue")
         
         pos = ObjectLocationPixel()

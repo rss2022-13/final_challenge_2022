@@ -23,7 +23,7 @@ class CarWashController():
     N=1
     
     def __init__(self):
-        rospy.Subscriber("/relative_carwash", ObjectLocation, self.relative_carwash_callback)
+        self.carwash = rospy.Subscriber("/relative_carwash", ObjectLocation, self.relative_carwash_callback)
 
         DRIVE_TOPIC = rospy.get_param("~drive_topic", "/vesc/ackermann_cmd_mux/input/navigation") # set in launch file; different for simulator vs racecar
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
@@ -34,18 +34,19 @@ class CarWashController():
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
         self.line_pub = rospy.Publisher("/wall", Marker, queue_size=1)
         
-        self.inside_wash_sub = rospy.Subscriber(self.SCAN_TOPIC, LaserScan, self.inside_wash_callback)
-        
-        self.can_publish_inside = False
 
     def state_callback(self,state):
         if state.state == 2:
-            self.can_publish = True
-        if state.state == 3:
-            self.can_publish_inside = True
+            if self.carwash is not None: #driving to carwash
+                self.can_publish = True
+            else: #drive straight through carwash
+                drive_cmd = AckermannDriveStamped()
+                drive_cmd.drive.speed = 1
+                drive_cmd.drive.steering_angle = 0
+                if self.can_publish:
+                    self.drive_pub.publish(drive_cmd)
         else:
             self.can_publish = False
-            self.can_publish_inside = False
 
     def relative_carwash_callback(self, msg):
         #relative x and y wrt frame of racecar
@@ -56,10 +57,10 @@ class CarWashController():
         target_angle = math.atan2(self.relative_y, self.relative_x)
         current_distance = (self.relative_x**2 + self.relative_y**2)**(0.5) + .5
 
-        self.dist_P = rospy.get_param("~dist_P")
-        self.dist_D = rospy.get_param("~dist_D")
-        self.ang_P = rospy.get_param("~ang_P")
-        self.ang_D = rospy.get_param("~ang_D")
+        self.dist_P = rospy.get_param("~dist_P", 0.45)
+        self.dist_D = rospy.get_param("~dist_D", 0.25)
+        self.ang_P = rospy.get_param("~ang_P", 1)
+        self.ang_D = rospy.get_param("~ang_D", 0.2)
 
         dist_err = current_distance - self.parking_distance
         ang_err = target_angle
@@ -77,51 +78,6 @@ class CarWashController():
             self.drive_pub.publish(drive_cmd)
             self.error_publisher()
 
-    def inside_wash_callback(self, msg):
-        x = data.ranges * np.cos(np.linspace(data.angle_min, data.angle_max, len(data.ranges)))
-        y = data.ranges * np.sin(np.linspace(data.angle_min, data.angle_max, len(data.ranges)))
-        length = x.size
-        
-        x = x[:length//2-ang_window]
-        y = y[:length//2-ang_window]
-
-        wall = np.polyfit(x,y,1)
-
-        a = wall[0]
-        b = wall[1]
-
-        #VISUALIATION wall black
-        VisualizationTools.plot_line(x, a*x+b, self.line_pub, frame="/laser", color = (0,0,1))
-       
-        theta = np.arctan(a)
-        
-        error = self.DESIRED_DISTANCE + b*np.cos(theta)
-        
-        loss = 1.0/self.N*(self.existing_error + np.abs(error))
-        self.N+=1
-        self.existing_error+=np.abs(error)
-        self.plot_loss+=[loss]
-        self.err_pub.publish(error)
-
-        P = self.kp #proportion
-        I = self.ki #integral
-        D = self.kd #derivative
-
-        dt = 1.0/500
-        self.integral += error * dt
-
-        derivative = (error - self.previous_error)/dt
-        self.previous_error = error
-        
-        msg = AckermannDriveStamped()
-        msg.header.stamp = rospy.Time(0)
-        msg.header.frame_id = "base_link"
-        msg.drive.speed = self.VELOCITY
-        msg.drive.acceleration = 0
-        msg.drive.steering_angle = P*error + D*derivative + max(min(I*self.integral, 0.34), -0.34)
-        
-        if self.can_publish_inside:
-            self.drive_pub.publish(msg)
 
     if __name__ == '__main__':
         try:

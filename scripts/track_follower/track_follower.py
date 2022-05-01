@@ -23,7 +23,7 @@ class TrackFollower():
 
         self.relative_x = 0
         self.relative_y = 0
-        self.lookahead = 2 #2.0 #2.5
+        self.lookahead = 2 #2.0, 2.5
         self.wheelbase_length = 0.325
         self.right_lane = None
         self.left_lane = None
