@@ -4,7 +4,7 @@ import rospy
 import numpy as np
 from final_challenge_2022.msg import ObjectLocation, State, CarWash, Finish
 from ackermann_msgs.msg import AckermannDriveStamped
-
+from computer_vision.color_segmentation import cd_color_segmentation
 
 class Controller:
     '''
@@ -34,7 +34,7 @@ class Controller:
 
     def line_callback(self, data):
         if self.state == 3: #exiting carwash
-            rows, cols, channels  = img.shape
+            rows, cols, channels  = data.shape
             image_left = self.bridge.imgmsg_to_cv2(data, "bgr8")[:cols/2, :]
         
             image_right = self.bridge.imgmsg_to_cv2(data, "bgr8")[cols/2:, :]
