@@ -42,8 +42,8 @@ def cd_color_segmentation(img, template, color):
 
         #colors in hsv
 	if color == "orange":
-            light = np.array([3, 140, 140])
-            dark = np.array([25,255,255])
+            light = np.array([44, 100, 84])
+            dark = np.array([25,94,100])
         else: #blue
             light = np.array([208, 50, 70])
             dark = np.array([262, 100, 100])
