@@ -30,4 +30,6 @@
     <param name="carwash_velocity" value="0.5" />
     <param name="carwash_desired_distance" value="0.1" />
   </node>
+  <node pkg="final_challenge" name="wash_locator" type="carwash_locator.py" output="screen">
+  </node>
 </launch>
