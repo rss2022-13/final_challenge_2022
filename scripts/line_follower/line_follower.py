@@ -120,6 +120,7 @@ class LineFollower():
             self.drive_pub.publish(drive_cmd)
             self.error_publisher()
         else:
+            pass
             # print "cannot publish line follower"
 
     def error_publisher(self):
