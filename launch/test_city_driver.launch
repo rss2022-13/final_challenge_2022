@@ -1,5 +1,4 @@
 <launch>
-<!--
   <node pkg="final_challenge" name="stop_detector" type="stop_detector.py" output="screen">
   </node>
   <node pkg="final_challenge" name="stop_locator" type="stop_locator.py" output="screen">
@@ -11,7 +10,6 @@
     <param name="dist_P" value="1" />
     <param name="dist_D" value="0.2" />
   </node>
--->
   <node pkg="final_challenge" name="line_detector" type="line_detector.py" output="screen">
   </node>
   <node pkg="final_challenge" name="line_locator" type="line_locator.py" output="screen">
