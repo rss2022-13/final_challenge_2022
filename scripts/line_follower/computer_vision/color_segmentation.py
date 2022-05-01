@@ -56,8 +56,8 @@ def cd_color_segmentation(img, template, color):
         blank = np.zeros(img.shape[:2], dtype = "uint8")
 
         #these are the coordinates which define the rectangle
-        topLeft = (0,3*img.shape[0]/8)
-        botRight = (img.shape[1],5*img.shape[0]/8)
+        topLeft = (0,5*img.shape[0]/8)
+        botRight = (img.shape[1],7*img.shape[0]/8)
 
         #creates a white rectangle the width of the image and 1/4 the height, offset 1/8 up from the bottom, the rest is black
         rectangle_mask = cv2.rectangle(blank,topLeft,botRight,(255,255,255),-1)
