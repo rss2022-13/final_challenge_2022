@@ -32,7 +32,7 @@ class CarWashController():
 
         self.can_publish = False
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
-        self.line_pub = rospy.Publisher("/wall", Marker, queue_size=1)
+        #self.line_pub = rospy.Publisher("/wall", Marker, queue_size=1)
         
 
     def state_callback(self,state):
