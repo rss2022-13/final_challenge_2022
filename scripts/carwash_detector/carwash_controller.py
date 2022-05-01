@@ -86,7 +86,7 @@ class CarWashController():
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('CarwashController', anonymous=True)
+        rospy.init_node('wash_driver', anonymous=True)
         carwashcontroller = CarWashController()
         rospy.spin()
     except rospy.ROSInterruptException:

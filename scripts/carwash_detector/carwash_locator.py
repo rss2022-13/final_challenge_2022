@@ -118,6 +118,6 @@ class CarwashLocator:
 
 
 if __name__ == "__main__":
-    rospy.init_node('carwash_locator')
+    rospy.init_node('wash_locator')
     homography_transformer = CarwashLocator()
     rospy.spin()

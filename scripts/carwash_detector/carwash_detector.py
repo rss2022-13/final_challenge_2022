@@ -59,7 +59,7 @@ class CarwashDetector():
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('carwash_detector', anonymous=True)
+        rospy.init_node('wash_detector', anonymous=True)
         CarwashDetector()
         rospy.spin()
     except rospy.ROSInterruptException:
