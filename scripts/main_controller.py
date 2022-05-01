@@ -2,26 +2,25 @@
 
 import rospy
 import numpy as np
-from final_challenge_2022.msg import ObjectLocation, State, CarWash, Finish
+from final_challenge.msg import ObjectLocation, ObjectLocationPixel, State, CarWash, Finish
 from ackermann_msgs.msg import AckermannDriveStamped
-
+from computer_vision.color_segmentation import cd_color_segmentation
 
 class Controller:
     '''
     The main idea of this centralized controller is to listen to the outputs of the various subprocesses,
     and decide which process should be taking control of the car at a given point.
-
     State Values are as follows:
     0: Line Following/ City Navigation
     1: Stop Sign Behavior
     2: Car Wash behavior
     '''
     def __init__(self):
-        DRIVE_TOPIC = rospy.get_param("~drive_topic")
-        self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size = 10)
+        # DRIVE_TOPIC = rospy.get_param("~drive_topic")
+        # self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size = 10)
         self.state_pub = rospy.Publisher(rospy.get_param("~state_topic", "/state"), State, queue_size = 10)
-        self.line_pub = rospy.Publisher("/relative_line_px", ObjectLocationPixel, queue_size=10)
-        self.image_pub = rospy.Subscriber("/line_debug_img", Image, self.line_callback)
+        # self.image_pub = rospy.Subscriber("/line_debug_img", Image, self.line_callback)
+        self.line_sub = rospy.Subscriber("/relative_line", ObjectLocation, self.line_callback)
         self.sign_sub = rospy.Subscriber("/relative_sign", ObjectLocation, self.sign_callback)
         self.wash_sub = rospy.Subscriber("/relative_carwash_px", ObjectLocationPixel, self.wash_callback)
         self.finish_sub = rospy.Subscriber("/finished", Finish, self.end_process_callback)
@@ -33,25 +32,22 @@ class Controller:
         self.cooldown = 3
 
     def line_callback(self, data):
-        if self.state == 3: #exiting carwash
-            rows, cols, channels  = img.shape
-            image_left = self.bridge.imgmsg_to_cv2(data, "bgr8")[:cols/2, :]
+        # if self.state == 3: #exiting carwash
+        #     rows, cols, channels  = data.shape
+        #     image_left = self.bridge.imgmsg_to_cv2(data, "bgr8")[:cols/2, :]
         
-            image_right = self.bridge.imgmsg_to_cv2(data, "bgr8")[cols/2:, :]
+        #     image_right = self.bridge.imgmsg_to_cv2(data, "bgr8")[cols/2:, :]
         
-            (x1_left,y1_left), (x2_left,y2_left) = cd_color_segmentation(image_left, None, "orange")
-            (x1_right,y1_right), (x2_right,y2_right) = cd_color_segmentation(image_right, None, "orange")
+        #     (x1_left,y1_left), (x2_left,y2_left) = cd_color_segmentation(image_left, None, "orange")
+        #     (x1_right,y1_right), (x2_right,y2_right) = cd_color_segmentation(image_right, None, "orange")
 
-            drive_cmd = AckermannDriveStamped()
-
-            if x1_left is None or x1_right is None:
-                #drive straight
-                drive_cmd.drive.steering_angle = 0
-            elif y1_left < y1_right:    #positive slope line -> turn right -> only look at right image
-                drive_cmd.drive.steering_angle = -1
-            else:   #neg slope -> turn left -> look at left image
-                drive_cmd.drive.steering_angle = 1
-            self.drive_pub.publish(drive_cmd)
+        #     drive_cmd = AckermannDriveStamped()
+            
+        #     if y1_left < y1_right:    #positive slope line -> turn right -> only look at right image
+        #         drive_cmd.drive.steering_angle = -1.5
+        #     else:   #neg slope -> turn left -> look at left image
+        #         drive_cmd.drive.steering_angle = 1.5
+        #     self.drive_pub.publish(drive_cmd)
             
         
         if self.state != 0:
@@ -99,4 +95,10 @@ class Controller:
         out.state = self.state
         self.state_pub.publish(out)
 
-
+if __name__ == '__main__':
+    try:
+        rospy.init_node('main_controller', anonymous=True)
+        carwashcontroller = Controller()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass
