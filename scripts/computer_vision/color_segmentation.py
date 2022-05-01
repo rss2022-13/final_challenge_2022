@@ -45,8 +45,8 @@ def cd_color_segmentation(img, template, color):
         light = np.array([3, 140, 140])
         dark = np.array([25,255,255])
     else: #blue
-        light = np.array([208, 50, 70])
-        dark = np.array([262, 100, 100])
+        light = np.array([70, 40, 70])
+        dark = np.array([130, 80, 100])
 
     mask = cv2.inRange(hsv, light, dark)
     isolated_color = cv2.bitwise_and(img,img, mask= mask)
