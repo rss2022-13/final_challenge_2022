@@ -100,78 +100,85 @@ class StopController():
         #relative x and y wrt frame of racecar
         self.relative_x = msg.x
         self.relative_y = msg.y
-        drive_cmd = AckermannDriveStamped()
 
-        target_angle = math.atan2(self.relative_y, self.relative_x)
-        current_distance = (self.relative_x**2 + self.relative_y**2)**(0.5) + .5
 
-        dist_err = current_distance - self.parking_distance
-        ang_err = target_angle
-        self.speed = self.dist_P*dist_err + self.dist_D*(dist_err - self.prev_dist_err)
-        if abs(self.speed) > 1:
-            self.speed = self.speed/abs(self.speed)
-        self.steer_angle = self.ang_P*ang_err + self.ang_D*(ang_err - self.prev_ang_err)
+        # just check to see if distance away is less than threshold
+        if math.sqrt(self.relative_x**2 + self.relative_y**2) <= .75:
+            out = Bool()
+            out.data = True
+            self.stop_pub.publish(out)
+        # drive_cmd = AckermannDriveStamped()
 
-        #TODO: change so that if youre far and angle is large, just go forward
-        #or increase the threshold for a large angle
-        if abs(ang_err) >= math.pi/4: #prioritize fixing large angle error, back up and rotate
-            self.speed = -0.5
-            self.steer_angle = -abs(ang_err)/ang_err * abs(ang_err)
+        # target_angle = math.atan2(self.relative_y, self.relative_x)
+        # current_distance = (self.relative_x**2 + self.relative_y**2)**(0.5) + .5
 
-        
-        #stop if close enough
-        if abs(dist_err) < 0.05 and abs(ang_err) < 0.1:
-            self.speed = 0
-            self.steer_angle = 0
-            if not self.timer_set and self.can_publish:
-                self.stop_time = time.time()
-                self.timer_set = True
+        # dist_err = current_distance - self.parking_distance
+        # ang_err = target_angle
+        # self.speed = self.dist_P*dist_err + self.dist_D*(dist_err - self.prev_dist_err)
+        # if abs(self.speed) > 1:
+        #     self.speed = self.speed/abs(self.speed)
+        # self.steer_angle = self.ang_P*ang_err + self.ang_D*(ang_err - self.prev_ang_err)
+
+        # #TODO: change so that if youre far and angle is large, just go forward
+        # #or increase the threshold for a large angle
+        # if abs(ang_err) >= math.pi/4: #prioritize fixing large angle error, back up and rotate
+        #     self.speed = -0.5
+        #     self.steer_angle = -abs(ang_err)/ang_err * abs(ang_err)
 
         
+        # #stop if close enough
+        # if abs(dist_err) < 0.05 and abs(ang_err) < 0.1:
+        #     self.speed = 0
+        #     self.steer_angle = 0
+        #     if not self.timer_set and self.can_publish:
+        #         self.stop_time = time.time()
+        #         self.timer_set = True
 
-        #print('speed:', self.speed, 'steer:', self.steer_angle, 'ang err:', ang_err)
-        self.prev_ang_err = ang_err
-        self.prev_dist_err = dist_err
-        '''
-        # CASE FOR SIMULATOR ONLY: Cone behind us:
-        if self.relative_x <= 0:
-            if self.relative_y <= 0:
-                self.angle = -math.pi/2
-            else:
-                self.angle = math.pi/2
         
-        # CASE: Cone in Front
-        else:
-            self.angle = target_angle
 
-        # CASE: Cone too close
-        if current_distance < self.parking_distance:
-            #self.angle * -1
-            self.speed = -self.speed
+        # #print('speed:', self.speed, 'steer:', self.steer_angle, 'ang err:', ang_err)
+        # self.prev_ang_err = ang_err
+        # self.prev_dist_err = dist_err
+        # '''
+        # # CASE FOR SIMULATOR ONLY: Cone behind us:
+        # if self.relative_x <= 0:
+        #     if self.relative_y <= 0:
+        #         self.angle = -math.pi/2
+        #     else:
+        #         self.angle = math.pi/2
+        
+        # # CASE: Cone in Front
+        # else:
+        #     self.angle = target_angle
 
-        # CASE: Cone to the side
-        else:
-            if target_angle > math.pi/8:
-                self.angle = math.pi/2
-            elif target_angle < math.pi/8:
-                self.angle = -math.pi/2
-            else:
-                # CASE: Angle is fine, but we need to get closer
-                if current_distance > self.parking_distance + 1: # We set the correctness tolerance as +1 Meter
-                    self.speed = 0.5
-                else:
-                    self.speed = 0
-        '''
-        drive_cmd.drive.speed = self.speed
-        drive_cmd.drive.steering_angle = self.steer_angle
-        if self.can_publish:
-            self.drive_pub.publish(drive_cmd)
-            if self.timer_set and time.time() - self.stop_time > .5:
-                out = Finish()
-                out.process = "stop"
-                self.timer_set = False
-                self.finish_pub.publish(out)
-            self.error_publisher()
+        # # CASE: Cone too close
+        # if current_distance < self.parking_distance:
+        #     #self.angle * -1
+        #     self.speed = -self.speed
+
+        # # CASE: Cone to the side
+        # else:
+        #     if target_angle > math.pi/8:
+        #         self.angle = math.pi/2
+        #     elif target_angle < math.pi/8:
+        #         self.angle = -math.pi/2
+        #     else:
+        #         # CASE: Angle is fine, but we need to get closer
+        #         if current_distance > self.parking_distance + 1: # We set the correctness tolerance as +1 Meter
+        #             self.speed = 0.5
+        #         else:
+        #             self.speed = 0
+        # '''
+        # drive_cmd.drive.speed = self.speed
+        # drive_cmd.drive.steering_angle = self.steer_angle
+        # if self.can_publish:
+        #     self.drive_pub.publish(drive_cmd)
+        #     if self.timer_set and time.time() - self.stop_time > .5:
+        #         out = Finish()
+        #         out.process = "stop"
+        #         self.timer_set = False
+        #         self.finish_pub.publish(out)
+        #     self.error_publisher()
 
     def error_publisher(self):
         """

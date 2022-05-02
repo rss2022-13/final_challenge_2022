@@ -21,7 +21,7 @@ class Controller:
         self.state_pub = rospy.Publisher(rospy.get_param("~state_topic", "/state"), State, queue_size = 10)
         # self.image_pub = rospy.Subscriber("/line_debug_img", Image, self.line_callback)
         # self.line_sub = rospy.Subscriber("/relative_line", ObjectLocation, self.line_callback)
-        self.sign_sub = rospy.Subscriber("/relative_sign", ObjectLocation, self.sign_callback)
+        self.sign_sub = rospy.Subscriber("/stop", ObjectLocation, self.sign_callback)
         self.wash_sub = rospy.Subscriber("/relative_carwash_px", ObjectLocationPixel, self.wash_callback)
         self.finish_sub = rospy.Subscriber("/finished", Finish, self.end_process_callback)
         
@@ -64,6 +64,7 @@ class Controller:
         state (1) and publish.
         '''
         if self.state != 1:
+            print "changing to state 1"
             out = State()
             out.state = 1
             self.prev_state = self.state
@@ -76,6 +77,7 @@ class Controller:
         to the car wash state (2) and publish.
         '''
         if self.state != 2:
+            print "changing to state 2"
             out = State()
             out.state = 2
             self.prev_state = self.state
@@ -87,6 +89,7 @@ class Controller:
         '''
         Just takes us back to the previous state we were at to resume whatever process we were on.
         '''
+        print "ending a process!"
         self.prev_state, self.state = self.state, self.prev_state
 
         

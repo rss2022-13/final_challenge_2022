@@ -4,6 +4,7 @@ from dis import dis
 import rospy
 import numpy as np
 import math
+import time
 
 from final_challenge.msg import ObjectLocation, FollowerError, State
 from ackermann_msgs.msg import AckermannDriveStamped
@@ -25,6 +26,7 @@ class LineFollower():
         
         # For determining if we can publish driving commands (in the correct state)
         self.can_publish = True
+        self.stop = False
 
         self.parking_distance = .5 # meters; try playing with this number!
         self.relative_x = 0
@@ -39,9 +41,20 @@ class LineFollower():
         self.prev_dist_err = 0
         self.prev_ang_err = 0
 
+
+
     def state_callback(self,state):
         if state.state == 0:
             self.can_publish = True
+        elif state.state == 1:
+            # this means we should be stopping for about a half second
+            self.can_pubish = True
+            if not self.stop:
+                # Not necessarily sure if this will work, but I suspect it might 
+                # since callbacks aren't thread safe (others will run while this is running)
+                self.stop = True
+                time.sleep(.5)
+                self.stop = False
         else:
             self.can_publish = False
 
@@ -56,10 +69,6 @@ class LineFollower():
 
         dist_err = current_distance - self.parking_distance
         ang_err = target_angle
-        # self.speed = self.dist_P*dist_err + self.dist_D*(dist_err - self.prev_dist_err)
-        # if abs(self.speed) > 1:
-        #     self.speed = self.speed/abs(self.speed)
-        #self.steer_angle = self.ang_P*ang_err + self.ang_D*(ang_err - self.prev_ang_err)
 
         #TODO: change so that if youre far and angle is large, just go forward
         #or increase the threshold for a large angle
@@ -74,50 +83,17 @@ class LineFollower():
             self.speed = 0.5
             self.steer_angle = self.ang_P*ang_err + self.ang_D*(ang_err - self.prev_ang_err)
 
-        '''
-        #stop if close enough
-        if abs(dist_err) < 0.05 and abs(ang_err) < 0.1:
-            self.speed = 0
-            self.steer_angle = 0
-        '''
 
         #print('speed:', self.speed, 'steer:', self.steer_angle, 'ang err:', ang_err)
         self.prev_ang_err = ang_err
         self.prev_dist_err = dist_err
-        '''
-        # CASE FOR SIMULATOR ONLY: Cone behind us:
-        if self.relative_x <= 0:
-            if self.relative_y <= 0:
-                self.angle = -math.pi/2
-            else:
-                self.angle = math.pi/2
-        
-        # CASE: Cone in Front
-        else:
-            self.angle = target_angle
 
-        # CASE: Cone too close
-        if current_distance < self.parking_distance:
-            #self.angle * -1
-            self.speed = -self.speed
-
-        # CASE: Cone to the side
-        else:
-            if target_angle > math.pi/8:
-                self.angle = math.pi/2
-            elif target_angle < math.pi/8:
-                self.angle = -math.pi/2
-            else:
-                # CASE: Angle is fine, but we need to get closer
-                if current_distance > self.parking_distance + 1: # We set the correctness tolerance as +1 Meter
-                    self.speed = 0.5
-                else:
-                    self.speed = 0
-        '''
         drive_cmd.drive.speed = self.speed
         drive_cmd.drive.steering_angle = self.steer_angle
         if self.can_publish:
             # rospy.loginfo("line follower publishing")   
+            if self.stop:
+                drive_cmd.drive.speed = 0
             self.drive_pub.publish(drive_cmd)
             self.error_publisher()
         else:
