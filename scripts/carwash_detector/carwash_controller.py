@@ -36,11 +36,14 @@ class CarWashController():
         self.finish_pub = rospy.Publisher("/finished", Finish, queue_size=1)
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC, AckermannDriveStamped, queue_size=10)
         self.line_pub = rospy.Publisher("/wall", Marker, queue_size=1)
+        self.state = 0
         
     def line_callback(self, msg):
-        self.finish_pub.pub("exited carwash")
+        if self.state == 2 and msg.x <= 1: #start line following after exiting carwash
+            self.finish_pub.pub("exited carwash")
         
     def state_callback(self,state):
+        self.state = state
         if state.state == 2:
             if self.carwash is not None: #driving to carwash
                 self.can_publish = True
